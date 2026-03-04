@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     telegram_chat_id: str = ""
 
     # Database
-    database_url: str = "postgresql+asyncpg://user:pass@host/db""
+    database_url: str = "postgresql+asyncpg://user:pass@host/db"
 
     # Scheduler
     analysis_interval_minutes: int = 360

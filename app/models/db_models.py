@@ -145,10 +145,6 @@ class MetricsDaily(Base):
     """
 
     __tablename__ = "metrics_daily"
-    __table_args__ = (
-        # enables safe upsert semantics (INSERT OR REPLACE) in sqlite usage
-        {"sqlite_autoincrement": True},
-    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     day_utc: Mapped[str] = mapped_column(String(10))           # YYYY-MM-DD

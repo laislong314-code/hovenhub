@@ -1,0 +1,2483 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BetoTip Hub • Sports EV Intelligence</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Space+Grotesk:wght@600;700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans:    ['DM Sans', 'ui-sans-serif', 'system-ui'],
+            display: ['Syne', 'ui-sans-serif'],
+            mono:    ['DM Mono', 'ui-monospace', 'monospace'],
+          },
+          boxShadow: {
+            glow:   '0 0 0 1px rgba(255,255,255,.06), 0 8px 24px rgba(0,0,0,.5)',
+            'glow-g':'0 0 0 1px rgba(74,222,128,.18), 0 8px 32px rgba(0,0,0,.5), 0 0 48px rgba(74,222,128,.06)',
+            'glow-c':'0 0 0 1px rgba(34,211,238,.18), 0 8px 32px rgba(0,0,0,.5), 0 0 48px rgba(34,211,238,.06)',
+            'glow-r':'0 0 0 1px rgba(251,113,133,.18), 0 8px 32px rgba(0,0,0,.5)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root{
+      --bg:    #080a10;
+      --glass: rgba(12,15,26,.7);
+      --b:     rgba(255,255,255,.07);
+      --b2:    rgba(255,255,255,.04);
+      --txt:   rgba(255,255,255,.93);
+      --dim:   rgba(255,255,255,.45);
+      --dim2:  rgba(255,255,255,.28);
+      --green: #4ade80;
+      --cyan:  #22d3ee;
+      --rose:  #fb7185;
+      --amber: #fbbf24;
+      --vio:   #a78bfa;
+    }
+
+    html, body { height: 100%; }
+    body {
+      background:
+        radial-gradient(ellipse 80vw 60vh at 10% -5%, rgba(34,211,238,.09) 0%, transparent 60%),
+        radial-gradient(ellipse 60vw 50vh at 95%  5%, rgba(74,222,128,.07) 0%, transparent 55%),
+        radial-gradient(ellipse 100vw 80vh at 50% 120%, rgba(167,139,250,.05) 0%, transparent 60%),
+        var(--bg);
+      color: var(--txt);
+      font-family: 'DM Sans', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* grain overlay */
+    body::before {
+      content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='.25'/%3E%3C/svg%3E");
+      opacity:.05; mix-blend-mode: overlay;
+    }
+
+    ::-webkit-scrollbar { width:6px; height:6px }
+    ::-webkit-scrollbar-thumb { background:rgba(255,255,255,.1); border-radius:999px }
+    ::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,.16) }
+
+    /* Glass surface */
+    .glass {
+      background: var(--glass);
+      border: 1px solid var(--b);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+    .glass-lite {
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--b2);
+    }
+
+    .chip { border: 1px solid rgba(255,255,255,.09); }
+
+    .btn {
+      border: 1px solid rgba(255,255,255,.09);
+      background: rgba(255,255,255,.04);
+      transition: background .15s, border-color .15s, transform .1s;
+    }
+    .btn:hover  { background:rgba(255,255,255,.07); border-color:rgba(255,255,255,.15); }
+    .btn:active { transform: translateY(1px); }
+
+    .seg {
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.02);
+    }
+
+    /* KPI strip — horizontal scrollable on mobile */
+    .kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: .75rem;
+    }
+    @media(max-width:767px){
+      .kpi-strip {
+        display: flex;
+        overflow-x: auto;
+        gap: .625rem;
+        padding-bottom: .25rem;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+      }
+      .kpi-strip::-webkit-scrollbar { display:none }
+      .kpi-card { min-width: 140px; scroll-snap-align: start; flex-shrink: 0; }
+    }
+
+    /* KPI card */
+    .kpi-card {
+      background: rgba(12,15,26,.75);
+      border: 1px solid var(--b);
+      border-radius: 1.125rem;
+      padding: 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi-card .kpi-accent {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border-radius: inherit;
+    }
+    .kpi-label {
+      font-family: 'DM Mono', monospace;
+      font-size: .625rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    .kpi-value {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      line-height: 1;
+      margin-top: .35rem;
+      letter-spacing: -.02em;
+    }
+    .kpi-sub {
+      font-size: .7rem;
+      color: var(--dim);
+      margin-top: .3rem;
+    }
+
+    /* Signal card */
+    .sig-card {
+      background: rgba(12,15,26,.7);
+      border: 1px solid var(--b);
+      border-radius: 1rem;
+      padding: .875rem 1rem;
+      cursor: pointer;
+      transition: background .15s, border-color .15s, transform .12s;
+      position: relative;
+      overflow: hidden;
+    }
+    .sig-card:hover { background: rgba(18,22,38,.8); border-color: rgba(255,255,255,.12); }
+    .sig-card:active { transform: scale(.995); }
+
+    /* left accent bar on signal card */
+    .sig-card::before {
+      content:''; position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:3px 0 0 3px;
+    }
+    .sig-pending::before { background: var(--cyan); box-shadow: 0 0 12px rgba(34,211,238,.5); }
+    .sig-win::before     { background: var(--green); box-shadow: 0 0 12px rgba(74,222,128,.5); }
+    .sig-loss::before    { background: var(--rose); }
+
+    /* EV pill */
+    .ev-pill {
+      display:inline-flex; align-items:center;
+      font-family:'DM Mono', monospace; font-size:.72rem; font-weight:500;
+      padding: .18rem .55rem; border-radius: .35rem;
+    }
+    .ev-high  { background:rgba(74,222,128,.12); color:#86efac; border:1px solid rgba(74,222,128,.2); }
+    .ev-mid   { background:rgba(34,211,238,.10); color:#67e8f9; border:1px solid rgba(34,211,238,.18); }
+    .ev-low   { background:rgba(255,255,255,.06); color:rgba(255,255,255,.6); border:1px solid rgba(255,255,255,.1); }
+
+    /* prob bar */
+    .prob-bar { height:3px; border-radius:2px; background: rgba(255,255,255,.08); overflow:hidden; }
+    .prob-fill-g  { height:100%; background: linear-gradient(90deg, #22d3ee, #4ade80); border-radius:2px; }
+    .prob-fill-a  { height:100%; background: linear-gradient(90deg, #f59e0b, #fbbf24); border-radius:2px; }
+    .prob-fill-c  { height:100%; background: #22d3ee; border-radius:2px; }
+
+    /* Status tabs */
+    .status-tab, .mode-tab {
+      font-size:.78rem; font-weight:600; border-radius:.65rem;
+      padding:.35rem .8rem;
+      border:1px solid transparent;
+      background:transparent;
+      color:rgba(255,255,255,.5);
+      transition: all .15s;
+      cursor:pointer;
+    }
+    .status-tab:hover, .mode-tab:hover { color:rgba(255,255,255,.85); background:rgba(255,255,255,.05); }
+    .status-tab.active, .mode-tab.active {
+      background:rgba(255,255,255,.1);
+      border-color:rgba(255,255,255,.18);
+      color:#fff;
+    }
+
+    /* Filter panel sections */
+    .filter-section { border-bottom: 1px solid rgba(255,255,255,.06); padding-bottom:.875rem; margin-bottom:.875rem; }
+    .filter-section:last-child { border-bottom:none; padding-bottom:0; margin-bottom:0; }
+
+    /* Topbar */
+    .topbar {
+      position:sticky; top:0; z-index:50;
+      background: rgba(8,10,16,.88);
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+
+    /* Animations */
+    .pulse { animation: pulse 1.8s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    .skeleton { background: linear-gradient(90deg, rgba(255,255,255,.05) 0%, rgba(255,255,255,.09) 50%, rgba(255,255,255,.05) 100%); background-size:200% 100%; animation:sk 1.3s linear infinite; border-radius:.5rem; }
+    @keyframes sk { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+    /* Drawer */
+    #drawer { backdrop-filter:blur(28px); -webkit-backdrop-filter:blur(28px); }
+
+    /* Range input */
+    input[type=range] { accent-color: var(--cyan); }
+    select, input[type=number] { color: var(--txt); }
+    select option { background: #0f1220; }
+
+    .no-select { user-select:none; -webkit-user-select:none; }
+
+    /* ring helpers kept for signal glow on drawer open */
+    .ring-cy   { box-shadow: 0 0 0 1px rgba(34,211,238,.2), 0 0 32px rgba(34,211,238,.06) }
+    .ring-lime { box-shadow: 0 0 0 1px rgba(74,222,128,.2), 0 0 32px rgba(74,222,128,.06) }
+    .ring-mag  { box-shadow: 0 0 0 1px rgba(251,113,133,.18) }
+
+    /* ── Main navigation tabs (Sinais / Jogos) ── */
+    .main-nav {
+      display: flex;
+      gap: 0;
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 1rem;
+      padding: 3px;
+    }
+    .main-nav-tab {
+      flex: 1;
+      padding: .45rem 1.1rem;
+      border-radius: .75rem;
+      font-size: .78rem;
+      font-weight: 600;
+      color: rgba(255,255,255,.4);
+      transition: all .18s;
+      cursor: pointer;
+      border: none;
+      background: none;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .4rem;
+      white-space: nowrap;
+    }
+    .main-nav-tab.active {
+      background: rgba(255,255,255,.09);
+      border: 1px solid rgba(255,255,255,.12);
+      color: rgba(255,255,255,.92);
+    }
+    .main-nav-tab .nav-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #fb7185;
+      display: none;
+    }
+    .main-nav-tab .nav-dot.live-dot { display: inline-block; animation: pulse 1.5s infinite; }
+
+    /* ── Games section ── */
+    #section-jogos { display: none; }
+    #section-jogos.visible { display: block; }
+    #section-sinais { display: block; }
+    #section-sinais.hidden-section { display: none; }
+
+    /* Game status tabs (Pré / Live) */
+    .game-tab {
+      padding: .38rem .9rem;
+      border-radius: .65rem;
+      font-size: .72rem;
+      font-weight: 600;
+      color: rgba(255,255,255,.38);
+      border: 1px solid transparent;
+      background: none;
+      cursor: pointer;
+      transition: all .15s;
+      display: flex;
+      align-items: center;
+      gap: .35rem;
+    }
+    .game-tab.active {
+      background: rgba(255,255,255,.09);
+      border-color: rgba(255,255,255,.12);
+      color: rgba(255,255,255,.9);
+    }
+    .live-indicator {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #fb7185;
+      display: inline-block;
+      animation: pulse 1.4s infinite;
+    }
+
+    /* League accordion */
+    .league-group { margin-bottom: .5rem; }
+    .league-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .6rem .875rem;
+      border-radius: .875rem;
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.06);
+      cursor: pointer;
+      user-select: none;
+      transition: background .15s;
+    }
+    .league-header:hover { background: rgba(255,255,255,.05); }
+    .league-chevron {
+      width: 14px; height: 14px;
+      color: rgba(255,255,255,.3);
+      transition: transform .2s;
+      flex-shrink: 0;
+    }
+    .league-group.collapsed .league-chevron { transform: rotate(-90deg); }
+    .league-body { overflow: hidden; margin-top: 2px; }
+    .league-group.collapsed .league-body { display: none; }
+
+    /* Game row table */
+    .game-table { width: 100%; border-collapse: separate; border-spacing: 0 2px; }
+    .game-row {
+      background: rgba(12,15,26,.5);
+      border-radius: .75rem;
+      cursor: pointer;
+      transition: background .12s;
+    }
+    .game-row:hover { background: rgba(255,255,255,.05); }
+    .game-row td { padding: .55rem .75rem; vertical-align: middle; }
+    .game-row td:first-child { border-radius: .75rem 0 0 .75rem; padding-left: 1rem; }
+    .game-row td:last-child  { border-radius: 0 .75rem .75rem 0; padding-right: 1rem; }
+
+    .game-time {
+      font-family: 'DM Mono', monospace;
+      font-size: .68rem;
+      color: rgba(255,255,255,.35);
+      white-space: nowrap;
+    }
+    .game-teams {
+      font-weight: 700;
+      font-size: .8rem;
+    }
+    .game-teams .vs { color: rgba(255,255,255,.22); font-weight: 400; font-size: .7rem; margin: 0 .2rem; }
+    .game-minute {
+      font-family: 'DM Mono', monospace;
+      font-size: .65rem;
+      background: rgba(251,113,133,.15);
+      color: #fb7185;
+      padding: .1rem .4rem;
+      border-radius: .35rem;
+      white-space: nowrap;
+    }
+    .game-score {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: .95rem;
+      letter-spacing: -.01em;
+      white-space: nowrap;
+      text-align: center;
+      min-width: 44px;
+    }
+    .game-table { width: 100%; border-collapse: separate; border-spacing: 0 2px; }
+    /* Layout 3 colunas centralizado */
+    .match-layout {
+      display: grid;
+      grid-template-columns: 1fr 64px 1fr;
+      align-items: center;
+      width: 100%;
+    }
+    .match-home {
+      text-align: right;
+      font-size: .82rem;
+      font-weight: 700;
+      color: rgba(255,255,255,.93);
+      padding-right: .45rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .match-away {
+      text-align: left;
+      font-size: .82rem;
+      font-weight: 400;
+      color: rgba(255,255,255,.55);
+      padding-left: .45rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .match-score {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: .82rem;
+      font-weight: 700;
+      letter-spacing: -.01em;
+      text-align: center;
+      white-space: nowrap;
+      padding: .2rem .35rem;
+      border-radius: .4rem;
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.1);
+      color: rgba(255,255,255,.93);
+    }
+    .match-vs {
+      font-family: 'DM Mono', monospace;
+      font-size: .62rem;
+      text-align: center;
+      color: rgba(255,255,255,.22);
+    }
+    .odds-mini {
+      display: flex;
+      gap: .3rem;
+      align-items: center;
+    }
+    .odd-chip {
+      font-family: 'DM Mono', monospace;
+      font-size: .65rem;
+      padding: .18rem .45rem;
+      border-radius: .35rem;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.08);
+      color: rgba(255,255,255,.65);
+      white-space: nowrap;
+    }
+    .odd-chip.home-chip { color: #67e8f9; }
+    .odd-chip.draw-chip { color: rgba(255,255,255,.55); }
+    .odd-chip.away-chip { color: #86efac; }
+    .signal-count-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: rgba(34,211,238,.18);
+      border: 1px solid rgba(34,211,238,.25);
+      color: #67e8f9;
+      font-family: 'DM Mono', monospace;
+      font-size: .6rem;
+      font-weight: 700;
+      padding: 0 .3rem;
+    }
+
+    /* League filter pills */
+    .league-pill {
+      font-size: .65rem;
+      font-family: 'DM Mono', monospace;
+      padding: .22rem .65rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.09);
+      background: rgba(255,255,255,.03);
+      color: rgba(255,255,255,.45);
+      cursor: pointer;
+      transition: all .14s;
+      white-space: nowrap;
+    }
+    .league-pill.active {
+      background: rgba(34,211,238,.12);
+      border-color: rgba(34,211,238,.28);
+      color: #67e8f9;
+    }
+    .league-pill:hover:not(.active) {
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.7);
+    }
+
+    /* ── Feed agrupado Liga → Jogo → Sinais ── */
+    .feed-league-block {
+      margin-bottom: .75rem;
+    }
+    .feed-league-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .45rem .875rem;
+      border-radius: .75rem .75rem 0 0;
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.07);
+      border-bottom: none;
+      user-select: none;
+    }
+    .feed-match-block {
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 0;
+      overflow: hidden;
+    }
+    .feed-match-block:last-child {
+      border-radius: 0 0 .875rem .875rem;
+    }
+    .feed-match-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .6rem 1rem;
+      background: rgba(12,15,26,.65);
+      border-bottom: 1px solid rgba(255,255,255,.05);
+      cursor: default;
+    }
+    .feed-match-result-bar {
+      display: flex;
+      align-items: center;
+      gap: .35rem;
+      font-family: 'DM Mono', monospace;
+      font-size: .65rem;
+    }
+    .feed-signal-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .55rem 1rem;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+      cursor: pointer;
+      transition: background .13s;
+      position: relative;
+      gap: .75rem;
+    }
+    .feed-signal-row:last-child { border-bottom: none; }
+    .feed-signal-row:hover { background: rgba(255,255,255,.03); }
+    .feed-signal-row::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 2.5px;
+      border-radius: 0;
+    }
+    .fsr-pending::before { background: var(--cyan); }
+    .fsr-win::before     { background: var(--green); }
+    .fsr-loss::before    { background: var(--rose); }
+
+    /* Empty state */
+    .empty-games {
+      text-align: center;
+      padding: 3rem 1.5rem;
+      color: rgba(255,255,255,.3);
+      font-size: .82rem;
+    }
+  </style>
+</head>
+
+<body class="font-sans">
+  <div class="relative z-[1]">
+
+    <!-- ── Topbar ── -->
+    <header class="topbar">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6">
+        <div class="flex items-center justify-between gap-3 h-14">
+
+          <!-- Brand -->
+          <div class="flex items-center gap-3 min-w-0 shrink-0">
+            <div class="h-8 w-8 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,rgba(34,211,238,.2),rgba(74,222,128,.15));border:1px solid rgba(34,211,238,.22);">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#22d3ee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="rgba(34,211,238,.15)"/></svg>
+            </div>
+            <div>
+              <div class="font-display font-bold text-base leading-none">BetoTip <span class="text-white/35 font-sans font-normal text-xs tracking-wide">HUB</span></div>
+              <div class="flex items-center gap-1.5 mt-0.5">
+                <div id="conn-dot" class="h-1.5 w-1.5 rounded-full bg-white/20 transition-colors"></div>
+                <span id="conn" class="text-[10px] font-mono text-white/35">Conectando…</span>
+                <span class="text-white/15 hidden sm:inline">·</span>
+                <span id="clock" class="hidden sm:inline text-[10px] font-mono text-white/25"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Search desktop -->
+          <div class="hidden md:flex flex-1 max-w-xs mx-4">
+            <div class="flex items-center gap-2 w-full glass-lite rounded-xl px-3 py-1.5">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="rgba(255,255,255,.28)" stroke-width="2"/><path d="M21 21l-4.35-4.35" stroke="rgba(255,255,255,.28)" stroke-width="2" stroke-linecap="round"/></svg>
+              <input id="q" placeholder="Time, liga, mercado…" class="flex-1 bg-transparent outline-none text-sm placeholder:text-white/22 text-white/80" />
+              <kbd class="text-[9px] font-mono text-white/22 border border-white/08 rounded px-1 py-0.5">/</kbd>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center gap-1.5 shrink-0">
+            <div class="hidden lg:flex items-center gap-1.5 glass-lite rounded-xl px-2.5 py-1.5">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="rgba(255,255,255,.3)" stroke-width="1.5"/><path d="M12 3c-1.5 4-1.5 14 0 18M12 3c1.5 4 1.5 14 0 18M3 12h18" stroke="rgba(255,255,255,.3)" stroke-width="1.5"/></svg>
+              <select id="league-select" class="bg-transparent outline-none text-xs text-white/60 cursor-pointer max-w-[120px]">
+                <option value="">Todas as ligas</option>
+              </select>
+            </div>
+
+            <button id="btn-auto" class="btn rounded-xl px-2.5 py-1.5 text-xs font-semibold flex items-center gap-1.5">
+              <span id="auto-dot" class="h-1.5 w-1.5 rounded-full bg-white/25 transition-all"></span>Auto
+            </button>
+
+            <button id="btn-refresh" class="btn rounded-xl px-2.5 py-1.5 text-xs font-semibold hidden sm:flex items-center gap-1.5">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-9-9 9 9 0 0 1 9-9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M21 4v8h-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Atualizar
+            </button>
+
+            <button id="btn-trigger" class="rounded-xl px-3 py-1.5 text-xs font-bold flex items-center gap-1.5 text-black no-select" style="background:linear-gradient(135deg,#22d3ee,#4ade80);box-shadow:0 0 16px rgba(34,211,238,.18)">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor"/></svg>
+              Rodar
+            </button>
+
+            <!-- overflow -->
+            <div class="relative">
+              <button id="btn-menu" class="btn rounded-xl p-1.5 flex items-center justify-center">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/></svg>
+              </button>
+              <div id="menu-drop" class="hidden absolute right-0 top-full mt-1.5 glass rounded-xl py-1 w-44 z-50" style="box-shadow:0 8px 32px rgba(0,0,0,.6)">
+                <button id="btn-settle" class="w-full text-left px-3 py-2 text-xs hover:bg-white/5 transition-colors flex items-center gap-2 text-amber-300">⚡ Resolver resultados</button>
+                <button id="btn-clear-signals" class="w-full text-left px-3 py-2 text-xs hover:bg-white/5 transition-colors flex items-center gap-2 text-rose-300">🗑 Limpar sinais</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- mobile search -->
+        <div class="pb-2 md:hidden">
+          <div class="flex items-center gap-2 glass-lite rounded-xl px-3 py-1.5">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="rgba(255,255,255,.28)" stroke-width="2"/><path d="M21 21l-4.35-4.35" stroke="rgba(255,255,255,.28)" stroke-width="2" stroke-linecap="round"/></svg>
+            <input id="q_m" placeholder="Time, liga, mercado…" class="flex-1 bg-transparent outline-none text-sm placeholder:text-white/22" />
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ── KPI Strip ── -->
+    <section class="border-b" style="border-color:rgba(255,255,255,.05)">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 py-3">
+        <div class="kpi-strip">
+          <div class="kpi-card" style="border-color:rgba(34,211,238,.16)">
+            <div class="kpi-accent" style="background:radial-gradient(circle at 85% 15%, rgba(34,211,238,.07), transparent 55%)"></div>
+            <div class="kpi-label">Abertos</div>
+            <div class="kpi-value" id="kpi-open">—</div>
+            <div class="kpi-sub" id="kpi-open-sub">no feed</div>
+          </div>
+          <div class="kpi-card" style="border-color:rgba(74,222,128,.14)">
+            <div class="kpi-accent" style="background:radial-gradient(circle at 85% 15%, rgba(74,222,128,.06), transparent 55%)"></div>
+            <div class="kpi-label">Top EV</div>
+            <div class="kpi-value" style="color:#86efac" id="kpi-top-ev">—</div>
+            <div class="kpi-sub" id="kpi-top-ev-sub">no filtro</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Win Rate</div>
+            <div class="kpi-value" id="kpi-wr">—</div>
+            <div class="kpi-sub" id="kpi-wl">—W / —L</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">ROI</div>
+            <div class="kpi-value" id="kpi-roi">—</div>
+            <div class="kpi-sub" id="kpi-yield">Yield —</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">P / L</div>
+            <div class="kpi-value text-sm" style="margin-top:.5rem" id="kpi-pl">—</div>
+            <div class="kpi-sub" id="kpi-stake">Staked —</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Atualizado</div>
+            <div class="kpi-value font-mono text-base" style="margin-top:.5rem" id="kpi-upd">—</div>
+            <div class="kpi-sub" id="kpi-upd-sub">— sinais</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Main ── -->
+    <main class="mx-auto max-w-7xl px-4 sm:px-6 py-5">
+
+      <!-- Primary section nav -->
+      <div class="flex items-center justify-between mb-4">
+        <div class="main-nav">
+          <button class="main-nav-tab active" id="nav-sinais" onclick="switchSection('sinais')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Sinais
+          </button>
+          <button class="main-nav-tab" id="nav-jogos" onclick="switchSection('jogos')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 4v16M16 4v16M3 10h18M3 16h18" stroke="currentColor" stroke-width="1.5"/></svg>
+            Jogos
+            <span class="nav-dot live-dot" id="nav-live-dot" style="display:none"></span>
+          </button>
+        </div>
+        <span id="feed-count" class="text-[11px] font-mono text-white/30">— sinais</span>
+      </div>
+
+      <!-- ══ SECTION: SINAIS ══ -->
+      <div id="section-sinais">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+        <!-- Feed -->
+        <section class="lg:col-span-8 min-w-0">
+
+          <!-- status tabs -->
+          <div class="flex items-center gap-3 mb-3">
+            <div class="flex items-center gap-1 p-1 rounded-xl" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07)">
+              <button data-status="PENDING" class="status-tab">Abertos</button>
+              <button data-status="ALL"     class="status-tab">Todos</button>
+              <button data-status="WIN"     class="status-tab">Win</button>
+              <button data-status="LOSS"    class="status-tab">Loss</button>
+            </div>
+          </div>
+
+          <div id="feed" class="space-y-2"></div>
+        </section>
+
+        <!-- Sidebar -->
+        <aside class="lg:col-span-4 space-y-4">
+
+          <!-- Filters -->
+          <div class="glass rounded-2xl p-4">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-[10px] font-mono uppercase tracking-widest text-white/35">Filtros</span>
+              <button id="btn-reset" class="text-[11px] font-semibold text-white/35 hover:text-white/70 transition-colors">Reset</button>
+            </div>
+
+            <div class="filter-section">
+              <div class="text-[10px] font-mono uppercase tracking-[.16em] text-white/30 mb-2">Modo</div>
+              <div class="grid grid-cols-4 gap-1 p-1 rounded-xl" style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06)">
+                <button data-mode="ALL"   class="mode-tab">Todos</button>
+                <button data-mode="SAFE"  class="mode-tab">Seguro</button>
+                <button data-mode="HIGH"  class="mode-tab">Alta</button>
+                <button data-mode="COMBO" class="mode-tab">Combo</button>
+              </div>
+            </div>
+
+            <div class="filter-section">
+              <div class="text-[10px] font-mono uppercase tracking-[.16em] text-white/30 mb-2">EV mínimo</div>
+              <div class="flex items-center gap-3">
+                <input id="evMin" type="range" min="0" max="0.20" step="0.01" class="flex-1" />
+                <span id="evMinLbl" class="text-xs font-mono text-white/55 w-9 text-right shrink-0">0%</span>
+              </div>
+              <div class="mt-3">
+                <div class="text-[10px] font-mono uppercase tracking-[.16em] text-white/30 mb-2">Ordenar por</div>
+                <select id="sort" class="w-full glass-lite rounded-xl px-3 py-2 text-xs outline-none">
+                  <option value="EV_DESC">EV (maior primeiro)</option>
+                  <option value="TIME_ASC">Horário (mais cedo)</option>
+                  <option value="PROB_DESC">Probabilidade (maior)</option>
+                  <option value="ODD_DESC">Odd (maior)</option>
+                  <option value="STAKE_DESC">Stake (maior)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="filter-section">
+              <div class="text-[10px] font-mono uppercase tracking-[.16em] text-white/30 mb-2">Faixa de odd</div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <div class="text-[10px] text-white/25 mb-1">Mínima</div>
+                  <input id="oddMin" type="number" step="0.01" value="1.01" class="w-full glass-lite rounded-xl px-3 py-1.5 text-xs outline-none" />
+                </div>
+                <div>
+                  <div class="text-[10px] text-white/25 mb-1">Máxima</div>
+                  <input id="oddMax" type="number" step="0.01" value="99" class="w-full glass-lite rounded-xl px-3 py-1.5 text-xs outline-none" />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div class="text-[10px] font-mono uppercase tracking-[.16em] text-white/30 mb-2">Visualização</div>
+              <div class="grid grid-cols-2 gap-1 p-1 rounded-xl" style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06)">
+                <button id="density-compact" class="mode-tab">Compacto</button>
+                <button id="density-comfort" class="mode-tab">Conforto</button>
+              </div>
+              <div class="lg:hidden mt-3">
+                <div class="text-[10px] text-white/25 mb-1">Liga</div>
+                <select id="league-select-m" class="w-full glass-lite rounded-xl px-3 py-2 text-xs outline-none">
+                  <option value="">Todas as ligas</option>
+                </select>
+              </div>
+              <div class="mt-3 text-[10px] font-mono text-white/20 leading-relaxed">
+                <span class="text-white/35">R</span> atualizar · <span class="text-white/35">/</span> buscar · <span class="text-white/35">Esc</span> fechar
+              </div>
+            </div>
+          </div>
+
+          <!-- Top 5 -->
+          <div class="glass rounded-2xl p-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[10px] font-mono uppercase tracking-widest text-white/35">Top 5 EV</span>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="rgba(74,222,128,.45)"/></svg>
+            </div>
+            <div id="top5" class="space-y-1"></div>
+          </div>
+
+        </aside>
+      </div>
+      </div><!-- /section-sinais -->
+
+      <!-- ══ SECTION: JOGOS ══ -->
+      <div id="section-jogos">
+
+        <!-- Toolbar -->
+        <div class="flex flex-wrap items-center gap-3 mb-4">
+          <!-- Pré-jogo / Live tabs -->
+          <div class="flex items-center gap-1 p-1 rounded-xl" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07)">
+            <button class="game-tab active" data-gstatus="PRE" id="gtab-pre">
+              Pré-jogo
+              <span id="gtab-pre-count" class="signal-count-badge" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.12);color:rgba(255,255,255,.5)">—</span>
+            </button>
+            <button class="game-tab" data-gstatus="LIVE" id="gtab-live">
+              <span class="live-indicator"></span>
+              Live
+              <span id="gtab-live-count" class="signal-count-badge" style="background:rgba(251,113,133,.12);border-color:rgba(251,113,133,.22);color:#fb7185">—</span>
+            </button>
+          </div>
+
+          <!-- Search jogos -->
+          <div class="flex-1 max-w-xs">
+            <div class="flex items-center gap-2 glass-lite rounded-xl px-3 py-1.5">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="rgba(255,255,255,.28)" stroke-width="2"/><path d="M21 21l-4.35-4.35" stroke="rgba(255,255,255,.28)" stroke-width="2" stroke-linecap="round"/></svg>
+              <input id="gq" placeholder="Time ou liga…" class="flex-1 bg-transparent outline-none text-xs placeholder:text-white/22 text-white/80" />
+            </div>
+          </div>
+
+          <!-- Sort -->
+          <select id="gsort" class="glass-lite rounded-xl px-2.5 py-1.5 text-xs text-white/65 outline-none cursor-pointer bg-transparent border-0">
+            <option value="TIME_ASC">Horário ↑</option>
+            <option value="EV_DESC">EV ↓</option>
+            <option value="LEAGUE">Liga</option>
+          </select>
+
+          <!-- Auto refresh jogos -->
+          <button id="btn-refresh-games" class="btn rounded-xl px-2.5 py-1.5 text-xs font-semibold flex items-center gap-1.5">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-9-9 9 9 0 0 1 9-9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M21 4v8h-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Atualizar
+          </button>
+        </div>
+
+        <!-- League filter pills -->
+        <div id="league-pills" class="flex flex-wrap gap-1.5 mb-4"></div>
+
+        <!-- Games grid: table + sidebar -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+          <!-- Games list -->
+          <div class="lg:col-span-8">
+            <div id="games-feed" class="space-y-1">
+              <div class="empty-games">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style="margin:0 auto .75rem"><rect x="3" y="4" width="18" height="16" rx="2" stroke="rgba(255,255,255,.2)" stroke-width="1.5"/><path d="M8 4v16M16 4v16M3 10h18M3 16h18" stroke="rgba(255,255,255,.2)" stroke-width="1.3"/></svg>
+                Clique em "Jogos" para carregar a agenda
+              </div>
+            </div>
+          </div>
+
+          <!-- Games sidebar -->
+          <aside class="lg:col-span-4 space-y-4">
+            <!-- Live summary card -->
+            <div class="glass rounded-2xl p-4" id="live-summary-card">
+              <div class="text-[10px] font-mono uppercase tracking-widest text-white/35 mb-3 flex items-center gap-2">
+                <span class="live-indicator"></span>
+                Ao Vivo Agora
+              </div>
+              <div id="live-summary-body">
+                <div class="text-xs text-white/30 text-center py-2">Nenhum jogo ao vivo</div>
+              </div>
+            </div>
+
+            <!-- Pre-game with signals -->
+            <div class="glass rounded-2xl p-4">
+              <div class="text-[10px] font-mono uppercase tracking-widest text-white/35 mb-3">Com Sinais Ativos</div>
+              <div id="games-with-signals" class="space-y-1">
+                <div class="text-xs text-white/30 text-center py-2">Carregando…</div>
+              </div>
+            </div>
+
+            <!-- Stats by league -->
+            <div class="glass rounded-2xl p-4">
+              <div class="text-[10px] font-mono uppercase tracking-widest text-white/35 mb-3">Jogos por Liga</div>
+              <div id="league-stats" class="space-y-2"></div>
+            </div>
+          </aside>
+
+        </div>
+      </div><!-- /section-jogos -->
+
+    </main>
+
+    <!-- Drawer -->
+    <div id="overlay" class="fixed inset-0 bg-black/55 backdrop-blur-sm hidden z-[60]"></div>
+    <aside id="drawer" class="fixed right-0 top-0 h-full w-full sm:w-[500px] translate-x-full transition-transform duration-200 ease-out z-[70]">
+      <div class="h-full glass border-l flex flex-col" style="border-color:rgba(255,255,255,.07)">
+        <div class="px-5 py-4 border-b flex items-start justify-between gap-4 shrink-0" style="border-color:rgba(255,255,255,.07)">
+          <div class="min-w-0">
+            <div class="text-[10px] font-mono uppercase tracking-widest text-white/30 mb-1">Detalhe do sinal</div>
+            <div id="d-title" class="font-display font-bold text-lg leading-tight">—</div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0 mt-1">
+            <button id="btn-delete-signal" class="btn rounded-xl px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5 hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-300 transition-colors">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Excluir
+            </button>
+            <button id="btn-close" class="btn rounded-xl px-3 py-1.5 text-xs font-semibold">Fechar</button>
+          </div>
+        </div>
+        <div id="d-body" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
+      </div>
+    </aside>
+
+    <!-- Toasts -->
+    <div id="toasts" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-[90] space-y-2 w-[92vw] max-w-sm pointer-events-none"></div>
+
+  </div>
+<script>
+  // ───────────────────────────────────────────────────────────────────────────
+  // Config / State
+  // ───────────────────────────────────────────────────────────────────────────
+  const API_BASE = '/api/v1';
+  const BACKFILL_DAYS = 14;
+  const state = {
+    signals: [],
+    lastLoadedAt: null,
+    status: 'PENDING', // PENDING | ALL | WIN | LOSS
+    mode: 'ALL',       // ALL | SAFE | HIGH | COMBO
+    q: '',
+    evMin: 0,
+    oddMin: 1.01,
+    oddMax: 99,
+    sort: 'EV_DESC',
+    density: 'COMFORT',
+    auto: false,
+    autoMs: 15000,
+    timer: null,
+    connOk: false,
+    lastIds: new Set(),
+  };
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Helpers
+  // ───────────────────────────────────────────────────────────────────────────
+  const $ = (id) => document.getElementById(id);
+
+  const fmtPct = (x) => {
+    if (x == null || Number.isNaN(x)) return '—';
+    return (x * 100).toFixed(0) + '%';
+  }
+  const fmtPctSigned = (x) => {
+    if (x == null || Number.isNaN(x)) return '—';
+    const s = x >= 0 ? '+' : '';
+    return s + (x * 100).toFixed(1) + '%';
+  }
+  const fmtOdd = (x) => (x == null || Number.isNaN(x)) ? '—' : Number(x).toFixed(2);
+
+  const fmtMoney = (x) => {
+    if (x == null || Number.isNaN(x)) return '—';
+    const n = Number(x);
+    return (n < 0 ? '−' : '') + 'R$' + Math.abs(n).toFixed(2);
+  }
+
+  // Horários: SokkerPRO retorna em UTC-4 (utc-4 no path da API).
+  // O banco SQLite armazena naive sem sufixo — adicionamos 'Z' para forçar UTC,
+  // então convertemos para America/Cuiaba (UTC-4 = fuso de Três Lagoas/MS).
+  // Resultado: horário exibido bate com o relógio local do usuário.
+  const _fmtD = (iso, opts) => {
+    if (!iso) return '—';
+    const normalized = (iso.includes('+') || iso.toLowerCase().endsWith('z')) ? iso : iso + 'Z';
+    return new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Cuiaba', ...opts }).format(new Date(normalized));
+  };
+
+  const fmtDateTime = (iso) => _fmtD(iso, { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+  const fmtTime     = (iso) => _fmtD(iso, { hour:'2-digit', minute:'2-digit' });
+
+  const safeText = (s) => (s ?? '').toString().replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  const marketLabel = (m) => {
+    if (!m) return '—';
+    const t = m.toString().trim();
+
+    // Mapeamento direto dos mercados internos → label PT-BR legível
+    const MAP = {
+      'home':           'Vitória Casa',
+      'away':           'Vitória Fora',
+      'draw':           'Empate',
+      'btts':           'Ambos Marcam',
+      'no_btts':        'Ambos NÃO Marcam',
+      'dc_home_draw':   '1X - Casa ou Empate',
+      'dc_draw_away':   'X2 - Empate ou Fora',
+      'dc_home_away':   '12 - Casa ou Fora',
+      'over_0.5':  'Mais de 0.5 gols',  'under_0.5':  'Menos de 0.5 gols',
+      'over_1.5':  'Mais de 1.5 gols',  'under_1.5':  'Menos de 1.5 gols',
+      'over_2.5':  'Mais de 2.5 gols',  'under_2.5':  'Menos de 2.5 gols',
+      'over_3.5':  'Mais de 3.5 gols',  'under_3.5':  'Menos de 3.5 gols',
+      'over_4.5':  'Mais de 4.5 gols',  'under_4.5':  'Menos de 4.5 gols',
+      'over_5.5':  'Mais de 5.5 gols',  'under_5.5':  'Menos de 5.5 gols',
+      'corners_over_8.5':  'Escanteios +8.5',  'corners_under_8.5':  'Escanteios -8.5',
+      'corners_over_9.5':  'Escanteios +9.5',  'corners_under_9.5':  'Escanteios -9.5',
+      'corners_over_10.5': 'Escanteios +10.5', 'corners_under_10.5': 'Escanteios -10.5',
+      'cards_over_40':  'Cartões +40pts',  'cards_under_40':  'Cartões -40pts',
+    };
+
+    // Normaliza: "Over 2.5" e "Over_2.5" e "over_2.5" → todos viram a mesma key
+    const key = t.toLowerCase().replace(/[ \-]/g, '_');
+    if (MAP[key]) return MAP[key];
+
+    // Tenta sem underscores para variações do banco
+    const keyClean = t.toLowerCase().replace(/[_ \-]/g, '');
+    const mapMatch = Object.entries(MAP).find(([k]) => k.replace(/_/g,'') === keyClean);
+    if (mapMatch) return mapMatch[1];
+
+    // Fallback genérico para mercados não mapeados
+    return t
+      .replace(/^over_(\d+\.?\d*)/i,  (_, n) => `Mais de ${n} gols`)
+      .replace(/^under_(\d+\.?\d*)/i, (_, n) => `Menos de ${n} gols`)
+      .replace(/^corners_over_(\d+\.?\d*)/i,  (_, n) => `Escanteios +${n}`)
+      .replace(/^corners_under_(\d+\.?\d*)/i, (_, n) => `Escanteios -${n}`)
+      .replace(/home/ig, 'Casa')
+      .replace(/away/ig, 'Fora')
+      .replace(/draw/ig, 'Empate')
+      .replace(/no_btts/ig, 'Ambos NÃO Marcam')
+      .replace(/btts/ig, 'Ambos Marcam')
+      .replace(/_/g, ' ');
+  };
+
+  const modeOf = (s) => {
+    const odd = Number(s.suggested_odd ?? 0);
+    const m = (s.market ?? '').toString().toLowerCase();
+    const isCombo = m.includes('combo') || m.includes('multi');
+    if (isCombo) return 'COMBO';
+    if (odd >= 4.0) return 'HIGH';
+    if (odd >= 1.7 && odd <= 3.99) return 'SAFE';
+    return 'ALL';
+  };
+
+  const statusOf = (s) => {
+    const r = s.result;
+    if (!r) return 'PENDING';
+    if (r === 'WIN') return 'WIN';
+    if (r === 'LOSS') return 'LOSS';
+    return 'OTHER';
+  };
+
+  const badge = (kind, text) => {
+    const map = {
+      PENDING: 'bg-cyan-400/15 text-cyan-200 border-cyan-400/25',
+      WIN:     'bg-lime-400/15 text-lime-200 border-lime-400/25',
+      LOSS:    'bg-rose-400/15 text-rose-200 border-rose-400/25',
+      OTHER:   'bg-white/10 text-white/70 border-white/15',
+      SAFE:    'bg-white/10 text-white/75 border-white/15',
+      HIGH:    'bg-amber-400/15 text-amber-200 border-amber-400/25',
+      COMBO:   'bg-violet-400/15 text-violet-200 border-violet-400/25',
+    };
+    const cls = map[kind] ?? map.OTHER;
+    return `<span class="chip inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-[11px] font-mono ${cls}">${safeText(text)}</span>`;
+  }
+
+  async function api(path, opts={}){
+    // fetch com timeout (evita travar em endpoints lentos, ex: /live backfill)
+    const url = `${API_BASE}${path}`;
+    const timeoutMs = Number(opts.timeoutMs ?? 12000);
+    const controller = new AbortController();
+    const t = setTimeout(() => controller.abort(), timeoutMs);
+    try{
+      const res = await fetch(url, {
+        headers: { 'Content-Type':'application/json' },
+        signal: controller.signal,
+        ...opts
+      });
+      if(!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    } finally {
+      clearTimeout(t);
+    }
+  }
+
+  function toast(message, tone='info'){
+    const id = Math.random().toString(16).slice(2);
+    const toneCls = {
+      info: 'border-white/10 bg-white/5 text-white',
+      ok: 'border-lime-400/25 bg-lime-400/10 text-lime-100',
+      warn: 'border-amber-400/25 bg-amber-400/10 text-amber-100',
+      err: 'border-rose-400/25 bg-rose-400/10 text-rose-100',
+    }[tone] || 'border-white/10 bg-white/5 text-white';
+
+    const el = document.createElement('div');
+    el.className = `glass rounded-xl px-4 py-3 text-sm pointer-events-auto ${toneCls}`;
+    el.style.boxShadow = '0 8px 32px rgba(0,0,0,.5)';
+    el.innerHTML = `<div class="flex items-start justify-between gap-3"><div>${safeText(message)}</div><button class="text-white/40 hover:text-white ml-2 shrink-0" aria-label="fechar">✕</button></div>`;
+    el.querySelector('button').onclick = () => el.remove();
+    $('toasts').appendChild(el);
+    setTimeout(() => { el.remove(); }, 4500);
+  }
+
+  function setConn(ok){
+    state.connOk = ok;
+    $('conn').textContent = ok ? 'Online' : 'Offline';
+    $('conn').style.color = ok ? 'rgba(255,255,255,.38)' : '#fb7185';
+    const dot = $('conn-dot');
+    if(dot) { dot.style.background = ok ? '#4ade80' : '#fb7185'; dot.style.boxShadow = ok ? '0 0 6px rgba(74,222,128,.6)' : '0 0 6px rgba(251,113,133,.6)'; }
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Filtering / Sorting
+  // ───────────────────────────────────────────────────────────────────────────
+  function filtered(){
+    let list = [...state.signals];
+
+    // status
+    if (state.status === 'PENDING') list = list.filter(s => !s.result);
+    else if (state.status === 'WIN') list = list.filter(s => s.result === 'WIN');
+    else if (state.status === 'LOSS') list = list.filter(s => s.result === 'LOSS');
+
+    // mode
+    if (state.mode !== 'ALL') list = list.filter(s => modeOf(s) === state.mode);
+
+    // q
+    const q = (state.q || '').trim().toLowerCase();
+    if (q){
+      list = list.filter(s => {
+        const blob = `${s.home_team} ${s.away_team} ${s.league} ${s.market} ${s.bookmaker}`.toLowerCase();
+        return blob.includes(q);
+      });
+    }
+
+    // ev min
+    list = list.filter(s => Number(s.ev ?? 0) >= Number(state.evMin ?? 0));
+
+    // odd range
+    const omin = Number(state.oddMin ?? 1.01);
+    const omax = Number(state.oddMax ?? 99);
+    list = list.filter(s => {
+      const o = Number(s.suggested_odd ?? 0);
+      return o >= omin && o <= omax;
+    });
+
+    // sort
+    const sort = state.sort;
+    const prob = (s) => Number(s.model_probability ?? 0);
+    const time = (s) => new Date(s.commence_time).getTime();
+    const odd  = (s) => Number(s.suggested_odd ?? 0);
+    const ev   = (s) => Number(s.ev ?? 0);
+    const stake= (s) => Number(s.stake_units ?? 0);
+
+    list.sort((a,b) => {
+      if (sort === 'EV_DESC') return ev(b)-ev(a);
+      if (sort === 'TIME_ASC') return time(a)-time(b);
+      if (sort === 'PROB_DESC') return prob(b)-prob(a);
+      if (sort === 'ODD_DESC') return odd(b)-odd(a);
+      if (sort === 'STAKE_DESC') return stake(b)-stake(a);
+      return 0;
+    });
+
+    return list;
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Rendering
+  // ───────────────────────────────────────────────────────────────────────────
+
+  // ── Linha compacta de sinal dentro do grupo jogo ─────────────────────────
+  function signalRowCompact(s, isNew=false){
+    const st  = statusOf(s);
+    const ev  = Number(s.ev ?? 0);
+    const prob= Number(s.model_probability ?? 0);
+    const odd = Number(s.suggested_odd ?? 0);
+
+    const evClass = ev >= 0.06 ? 'ev-pill ev-high' : ev >= 0.03 ? 'ev-pill ev-mid' : 'ev-pill ev-low';
+    const fsrCls  = st==='WIN' ? 'fsr-win' : st==='LOSS' ? 'fsr-loss' : 'fsr-pending';
+    const newMark = isNew ? '<span class="text-[9px] font-mono text-cyan-300/80 pulse ml-1">novo</span>' : '';
+
+    let resultTag = '';
+    if (st === 'WIN')  resultTag = '<span class="text-[10px] font-mono font-bold text-lime-300">WIN</span>';
+    if (st === 'LOSS') resultTag = '<span class="text-[10px] font-mono font-bold text-rose-400">LOSS</span>';
+
+    const mktLabel = safeText(marketLabel(s.label || s.market));
+
+    return `
+      <div class="feed-signal-row ${fsrCls} group" onclick="openDrawer(${s.id})">
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="text-xs font-semibold text-white/80 truncate">${mktLabel}</span>
+            ${newMark}
+          </div>
+          <div class="flex items-center gap-1.5 mt-0.5 text-[10px] font-mono text-white/30">
+            <span>${fmtOdd(odd)}</span>
+            <span class="text-white/15">·</span>
+            <span>${safeText(s.bookmaker || '—')}</span>
+            <span class="text-white/15">·</span>
+            <span>Prob ${Math.round(prob*100)}%</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          ${resultTag}
+          <span class="${evClass}">${fmtPctSigned(ev)}</span>
+          <button
+            class="opacity-0 group-hover:opacity-100 transition-opacity ml-1 p-1 rounded-lg hover:bg-rose-500/20 text-white/25 hover:text-rose-400"
+            onclick="event.stopPropagation(); deleteSignal(${s.id})"
+            title="Excluir sinal">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+              <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>`;
+  }
+
+  // ── Cabeçalho do jogo com logos, placar e barra de resultado ─────────────
+  function matchHeader(matchKey, signals){
+    const s0 = signals[0];
+    const total   = signals.length;
+    const wins    = signals.filter(s => s.result === 'WIN').length;
+    const losses  = signals.filter(s => s.result === 'LOSS').length;
+    const pending = signals.filter(s => !s.result).length;
+    const resolved= wins + losses;
+
+    // Barra de resultado
+    let resultBar = '';
+    if (resolved > 0) {
+      const wr = Math.round(wins / resolved * 100);
+      const wrColor = wr >= 60 ? '#4ade80' : wr >= 40 ? '#fbbf24' : '#fb7185';
+      resultBar = `
+        <div class="feed-match-result-bar">
+          <span style="color:${wrColor};font-weight:700">${wins}/${resolved}</span>
+          <span class="text-white/30">WIN</span>
+          <span style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:.3rem;padding:.08rem .35rem;color:${wrColor}">${wr}%</span>
+          ${pending > 0 ? `<span class="text-white/25">· ${pending} aberto${pending>1?'s':''}</span>` : ''}
+        </div>`;
+    } else if (pending > 0) {
+      resultBar = `
+        <div class="feed-match-result-bar">
+          <span class="text-cyan-300/70">${pending} aberto${pending>1?'s':''}</span>
+        </div>`;
+    }
+
+    const homeLogo = s0.home_logo ? `<img src="${s0.home_logo}" class="w-5 h-5 object-contain rounded-full bg-white/5 shrink-0" onerror="this.style.display='none'">` : '';
+    const awayLogo = s0.away_logo ? `<img src="${s0.away_logo}" class="w-5 h-5 object-contain rounded-full bg-white/5 shrink-0" onerror="this.style.display='none'">` : '';
+
+    const isLive = s0.is_live;
+    const liveTag = isLive
+      ? `<span class="live-indicator" style="width:5px;height:5px"></span>`
+      : '';
+
+    return `
+      <div class="feed-match-header">
+        <div class="flex items-center gap-2 min-w-0 flex-1">
+          ${liveTag}
+          ${homeLogo}
+          <span class="text-xs font-bold text-white/90 truncate">${safeText(s0.home_team)}</span>
+          <span class="text-[10px] text-white/25 shrink-0">vs</span>
+          <span class="text-xs font-semibold text-white/55 truncate">${safeText(s0.away_team)}</span>
+          ${awayLogo}
+          <span class="text-[10px] font-mono text-white/25 shrink-0 ml-1">${fmtTime(s0.commence_time)}</span>
+        </div>
+        ${resultBar}
+      </div>`;
+  }
+
+  // ── Legado: signalRow (usado apenas no drawer/top5, não no feed principal)
+  function signalRow(s, isNew=false){
+    const st = statusOf(s);
+    const md = modeOf(s);
+    const ev = Number(s.ev ?? 0);
+    const prob = Number(s.model_probability ?? 0);
+
+    const evClass = ev >= 0.06 ? 'ev-pill ev-high' : ev >= 0.03 ? 'ev-pill ev-mid' : 'ev-pill ev-low';
+    const probW = Math.max(0, Math.min(100, Math.round(prob*100)));
+    const probFill = probW >= 65 ? 'prob-fill-g' : probW >= 50 ? 'prob-fill-a' : 'prob-fill-c';
+
+    const dense = state.density === 'COMPACT';
+    const pad = dense ? 'px-3 py-2.5' : 'px-4 py-3.5';
+
+    const stateClass = st==='WIN' ? 'sig-win' : st==='LOSS' ? 'sig-loss' : 'sig-pending';
+    const newMark = isNew ? '<span class="text-[9px] font-mono uppercase tracking-widest text-cyan-300/80 pulse ml-1">novo</span>' : '';
+
+    const modeLabel = md==='SAFE'?'SEGURO':md==='HIGH'?'ALTA':md==='COMBO'?'COMBO':'';
+    const modeBadge = modeLabel ? `<span class="chip inline-flex rounded-full px-2 py-0.5 text-[10px] font-mono ${md==='HIGH'?'text-amber-200 border-amber-400/20 bg-amber-400/8':md==='COMBO'?'text-violet-200 border-violet-400/20 bg-violet-400/8':'text-white/50 border-white/10 bg-white/4'}">${modeLabel}</span>` : '';
+
+    return `
+      <button class="sig-card ${stateClass} ${pad} w-full text-left block" onclick="openDrawer(${s.id})">
+        <div class="flex items-start justify-between gap-3">
+
+          <div class="min-w-0 flex-1">
+            <!-- top row: league + badges -->
+            <div class="flex items-center gap-1.5 flex-wrap mb-1.5">
+              <span class="text-[10px] font-mono text-white/35 truncate max-w-[140px]">${safeText(s.league || '—')}</span>
+              ${modeBadge}
+              ${newMark}
+            </div>
+
+            <!-- teams -->
+            <div class="flex items-center gap-1.5 min-w-0">
+              ${s.home_logo ? `<img src="${s.home_logo}" class="w-4 h-4 rounded-full object-contain bg-white/5 shrink-0" onerror="this.style.display='none'">` : ''}
+              <span class="font-display font-bold text-sm truncate">${safeText(s.home_team)}</span>
+              <span class="text-white/25 text-xs shrink-0">vs</span>
+              <span class="font-display font-bold text-sm truncate">${safeText(s.away_team)}</span>
+              ${s.away_logo ? `<img src="${s.away_logo}" class="w-4 h-4 rounded-full object-contain bg-white/5 shrink-0" onerror="this.style.display='none'">` : ''}
+            </div>
+
+            <!-- market + time -->
+            <div class="flex items-center gap-2 mt-1 flex-wrap">
+              <span class="text-xs text-white/45 truncate">${safeText(marketLabel(s.label || s.market))}</span>
+              <span class="text-white/15">·</span>
+              <span class="text-[10px] font-mono text-white/30">${fmtTime(s.commence_time)}</span>
+              <span class="text-white/15">·</span>
+              <span class="text-[10px] font-mono text-white/30">${safeText(s.bookmaker || '—')}</span>
+            </div>
+          </div>
+
+          <!-- right col: metrics -->
+          <div class="shrink-0 flex flex-col items-end gap-2">
+            <div class="flex items-center gap-2">
+              <div class="text-right">
+                <div class="text-[9px] font-mono uppercase tracking-widest text-white/25">ODD</div>
+                <div class="text-sm font-bold font-mono">${fmtOdd(s.suggested_odd)}</div>
+              </div>
+              <div class="text-right">
+                <div class="text-[9px] font-mono uppercase tracking-widest text-white/25">STAKE</div>
+                <div class="text-sm font-bold font-mono">${(s.stake_pct!=null)?(s.stake_pct*100).toFixed(0)+'%':'—'}</div>
+              </div>
+            </div>
+            <span class="${evClass}">${fmtPctSigned(ev)}</span>
+            <div style="width:100px">
+              <div class="flex justify-between text-[9px] font-mono text-white/30 mb-1">
+                <span>PROB</span><span>${fmtPct(prob)}</span>
+              </div>
+              <div class="prob-bar"><div class="${probFill}" style="width:${probW}%"></div></div>
+            </div>
+          </div>
+
+        </div>
+      </button>
+    `;
+  }
+
+  function renderFeed(){
+    const list = filtered();
+    if (currentSection === 'sinais') {
+      $('feed-count').textContent = `${list.length} sinais`;
+    }
+
+    // KPIs derived from filter
+    const open = list.filter(s => !s.result).length;
+    $('kpi-open').textContent = open;
+
+    const topEv = list.length ? Math.max(...list.map(s => Number(s.ev ?? 0))) : 0;
+    $('kpi-top-ev').textContent = list.length ? fmtPctSigned(topEv) : '—';
+
+    // top5
+    const top5 = [...list].sort((a,b)=>Number(b.ev??0)-Number(a.ev??0)).slice(0,5);
+    $('top5').innerHTML = top5.length ? top5.map((s,i) => {
+      const ev = Number(s.ev ?? 0);
+      const evClass = ev >= 0.06 ? 'ev-pill ev-high' : ev >= 0.03 ? 'ev-pill ev-mid' : 'ev-pill ev-low';
+      return `
+        <button class="w-full text-left px-3 py-2 rounded-xl hover:bg-white/5 transition-colors flex items-center gap-3" onclick="openDrawer(${s.id})" style="border:1px solid rgba(255,255,255,.05)">
+          <span class="text-[10px] font-mono text-white/20 w-4 shrink-0">${i+1}</span>
+          <div class="min-w-0 flex-1">
+            <div class="text-xs font-bold truncate">${safeText(s.home_team)} <span class="text-white/25 font-normal">vs</span> ${safeText(s.away_team)}</div>
+            <div class="text-[10px] text-white/40 truncate mt-0.5">${safeText(marketLabel(s.label || s.market))}</div>
+          </div>
+          <div class="shrink-0 flex flex-col items-end gap-1">
+            <span class="${evClass}">${fmtPctSigned(ev)}</span>
+            <span class="text-[10px] font-mono text-white/30">${fmtTime(s.commence_time)}</span>
+          </div>
+        </button>
+      `;
+    }).join('') : `<div class="text-xs text-white/35 py-2">Sem sinais no filtro.</div>`;
+
+    // list
+    if (!state.signals.length){
+      $('feed').innerHTML = `
+        <div class="glass rounded-3xl p-4 shadow-glow">
+          <div class="skeleton h-5 w-40 rounded"></div>
+          <div class="mt-3 space-y-2">
+            <div class="skeleton h-16 rounded-2xl"></div>
+            <div class="skeleton h-16 rounded-2xl"></div>
+            <div class="skeleton h-16 rounded-2xl"></div>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    if (!list.length){
+      $('feed').innerHTML = `
+        <div class="glass rounded-3xl p-8 text-center shadow-glow">
+          <div class="text-sm text-white/60">Nada por aqui nesse filtro.</div>
+          <div class="mt-2 text-xs text-white/45">Tenta reduzir EV mínimo, ou trocar o modo/status.</div>
+        </div>
+      `;
+      return;
+    }
+
+    const nowIds = new Set(list.map(s => s.id));
+    const isNew = (id) => !state.lastIds.has(id);
+    state.lastIds = nowIds;
+
+    // ── Agrupa por liga → por jogo ─────────────────────────────────────────
+    const byLeague = {};
+    for (const s of list) {
+      const lk = s.league || '—';
+      const mk = `${s.match_id}`;
+      if (!byLeague[lk]) byLeague[lk] = {};
+      if (!byLeague[lk][mk]) byLeague[lk][mk] = [];
+      byLeague[lk][mk].push(s);
+    }
+
+    let html = '';
+    for (const [league, matchMap] of Object.entries(byLeague)) {
+      const matchEntries = Object.entries(matchMap);
+      const totalSigs = matchEntries.reduce((a,[,sigs])=>a+sigs.length,0);
+
+      // Contagem global da liga
+      const leagueWins    = matchEntries.reduce((a,[,sigs])=>a+sigs.filter(s=>s.result==='WIN').length,0);
+      const leagueRes     = matchEntries.reduce((a,[,sigs])=>a+sigs.filter(s=>s.result).length,0);
+      const leaguePending = matchEntries.reduce((a,[,sigs])=>a+sigs.filter(s=>!s.result).length,0);
+
+      let leagueResultChip = '';
+      if (leagueRes > 0) {
+        const wr = Math.round(leagueWins / leagueRes * 100);
+        const c  = wr >= 60 ? 'text-lime-300' : wr >= 40 ? 'text-amber-300' : 'text-rose-400';
+        leagueResultChip = `<span class="font-mono text-[10px] ${c}">${leagueWins}/${leagueRes} WIN · ${wr}%</span>`;
+      } else {
+        leagueResultChip = `<span class="font-mono text-[10px] text-cyan-300/60">${leaguePending} aberto${leaguePending>1?'s':''}</span>`;
+      }
+
+      html += `<div class="feed-league-block">
+        <div class="feed-league-header">
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-mono font-semibold text-white/60 uppercase tracking-wider">${safeText(league)}</span>
+            <span class="text-[10px] font-mono text-white/22">${totalSigs} sinal${totalSigs>1?'is':''}</span>
+          </div>
+          ${leagueResultChip}
+        </div>`;
+
+      for (const [matchKey, signals] of matchEntries) {
+        html += `<div class="feed-match-block">`;
+        html += matchHeader(matchKey, signals);
+        for (const s of signals) {
+          html += signalRowCompact(s, isNew(s.id));
+        }
+        html += `</div>`;
+      }
+
+      html += `</div>`;
+    }
+
+    $('feed').innerHTML = html;
+  }
+
+  async function renderStats(){
+    try{
+      const st = await api('/signals/stats');
+      $('kpi-wr').textContent = (st.win_rate != null) ? (st.win_rate*100).toFixed(0) + '%' : '—';
+      $('kpi-wl').textContent = `${st.wins ?? 0}W / ${st.losses ?? 0}L`;
+      $('kpi-roi').textContent = (st.roi != null) ? (st.roi*100).toFixed(1) + '%' : '—';
+      $('kpi-yield').textContent = `Yield ${(st.yield_pct!=null)?(st.yield_pct*100).toFixed(1)+'%':'—'}`;
+      $('kpi-pl').textContent = fmtMoney(st.total_profit_loss ?? 0);
+      $('kpi-stake').textContent = `Staked ${fmtMoney(st.total_staked ?? 0)}`;
+    }catch(e){
+      // keep silent; the feed is more important
+    }
+  }
+
+  function setUpdatedMeta(){
+    const d = state.lastLoadedAt;
+    $('kpi-upd').textContent = d ? new Intl.DateTimeFormat('pt-BR', { hour:'2-digit', minute:'2-digit', second:'2-digit' }).format(d) : '—';
+    $('kpi-upd-sub').textContent = `${state.signals.length} sinais carregados`;
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Drawer
+  // ───────────────────────────────────────────────────────────────────────────
+  let currentDrawerSignalId = null;
+
+  window.deleteSignal = async function(id, skipConfirm=false) {
+    if (!skipConfirm && !confirm('Excluir este sinal?')) return;
+    try {
+      await api(`/signals/${id}`, { method: 'DELETE' });
+      state.signals = state.signals.filter(s => s.id !== id);
+      renderFeed();
+      renderStats();
+      if (currentDrawerSignalId === id) closeDrawer();
+      toast('Sinal excluído.', 'ok');
+    } catch(e) {
+      toast('Erro ao excluir sinal.', 'err');
+    }
+  };
+
+  window.openDrawer = function(id){
+    const s = state.signals.find(x => x.id === id);
+    if (!s) return;
+    currentDrawerSignalId = id;
+    const delBtn = $('btn-delete-signal');
+    if (delBtn) delBtn.onclick = () => deleteSignal(id);
+
+    $('d-title').innerHTML = `
+      <span class="flex items-center gap-2 flex-wrap">
+        ${s.home_logo ? `<img src="${s.home_logo}" class="w-6 h-6 rounded-full object-contain bg-white/5 inline" onerror="this.style.display='none'">` : ''}
+        ${safeText(s.home_team)}
+        <span class="text-white/30 font-normal">vs</span>
+        ${safeText(s.away_team)}
+        ${s.away_logo ? `<img src="${s.away_logo}" class="w-6 h-6 rounded-full object-contain bg-white/5 inline" onerror="this.style.display='none'">` : ''}
+      </span>`;
+    const st = statusOf(s);
+
+    const prob = Number(s.model_probability ?? 0);
+    const impl = Number(s.implied_probability ?? 0);
+    const ev = Number(s.ev ?? 0);
+
+    const probW = Math.max(0, Math.min(100, Math.round(prob*100)));
+    const implW = Math.max(0, Math.min(100, Math.round(impl*100)));
+
+    const pl = s.profit_loss;
+    const plTone = pl == null ? 'OTHER' : (pl >= 0 ? 'WIN' : 'LOSS');
+
+    $('d-body').innerHTML = `
+      <div class="glass rounded-3xl p-4 shadow-glow">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <div class="text-[10px] font-mono uppercase tracking-[0.22em] text-white/45">${safeText(s.league || '—')} • ${fmtDateTime(s.commence_time)}</div>
+            <div class="mt-1 text-xl font-extrabold">${safeText(marketLabel(s.label || s.market))}</div>
+            <div class="mt-2 flex items-center gap-2 flex-wrap">
+              ${badge(st, st==='PENDING'?'ABERTO':st)}
+              ${badge(modeOf(s), modeOf(s)==='SAFE'?'SEGURO':modeOf(s)==='HIGH'?'ODD ALTA':modeOf(s)==='COMBO'?'COMBO':'—')}
+              <span class="chip rounded-full px-2.5 py-1 text-[11px] font-mono bg-white/5 text-white/65">${safeText(s.bookmaker || '—')}</span>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-[10px] font-mono uppercase tracking-[0.22em] text-white/45">ODD</div>
+            <div class="text-3xl font-extrabold">${fmtOdd(s.suggested_odd)}</div>
+            <div class="mt-1 text-xs text-white/55">enviado ${fmtDateTime(s.sent_at)}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div class="glass rounded-3xl p-4 shadow-glow">
+          <div class="text-[10px] font-mono uppercase tracking-[0.22em] text-white/45">EV</div>
+          <div class="mt-1 text-2xl font-extrabold ${ev>=0.06?'text-lime-200':ev>=0.03?'text-cyan-200':'text-white/80'}">${fmtPctSigned(ev)}</div>
+          <div class="mt-2 text-xs text-white/55">Stake sugerida: <span class="font-mono text-white/80">${(s.stake_pct!=null)?(s.stake_pct*100).toFixed(0)+'%':'—'}</span> • <span class="font-mono text-white/80">${(s.stake_units!=null)?Number(s.stake_units).toFixed(2):'—'}</span> unidades</div>
+        </div>
+        <div class="glass rounded-3xl p-4 shadow-glow">
+          <div class="text-[10px] font-mono uppercase tracking-[0.22em] text-white/45">P/L</div>
+          <div class="mt-1 text-2xl font-extrabold">${badge(plTone, pl==null?'—':fmtMoney(pl))}</div>
+          <div class="mt-2 text-xs text-white/55">Resultado: <span class="font-mono text-white/80">${s.result ?? 'ABERTO'}</span></div>
+        </div>
+      </div>
+
+      <div class="glass rounded-3xl p-4 shadow-glow">
+        <div class="flex items-center justify-between">
+          <div class="text-[10px] font-mono uppercase tracking-[0.22em] text-white/45">Probabilidades</div>
+          <div class="text-xs text-white/55">Modelo vs Implícita</div>
+        </div>
+
+        <div class="mt-4 space-y-3">
+          <div>
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-white/60">Modelo</span>
+              <span class="font-mono text-white/80">${fmtPct(prob)}</span>
+            </div>
+            <div class="mt-1 h-2 w-full rounded-full bg-white/10 overflow-hidden"><div class="h-full bg-cyan-400" style="width:${probW}%"></div></div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-white/60">Implícita (odd)</span>
+              <span class="font-mono text-white/80">${fmtPct(impl)}</span>
+            </div>
+            <div class="mt-1 h-2 w-full rounded-full bg-white/10 overflow-hidden"><div class="h-full bg-white/35" style="width:${implW}%"></div></div>
+          </div>
+        </div>
+
+        <div class="mt-4 grid grid-cols-3 gap-2">
+          <div class="seg rounded-2xl px-3 py-2">
+            <div class="text-[10px] font-mono uppercase tracking-[0.22em] text-white/45">Match</div>
+            <div class="mt-1 text-xs font-mono text-white/75 truncate">${safeText(s.match_id)}</div>
+          </div>
+          <div class="seg rounded-2xl px-3 py-2">
+            <div class="text-[10px] font-mono uppercase tracking-[0.22em] text-white/45">Prob</div>
+            <div class="mt-1 text-sm font-extrabold">${fmtPct(prob)}</div>
+          </div>
+          <div class="seg rounded-2xl px-3 py-2">
+            <div class="text-[10px] font-mono uppercase tracking-[0.22em] text-white/45">Impl</div>
+            <div class="mt-1 text-sm font-extrabold">${fmtPct(impl)}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass rounded-3xl p-4 shadow-glow" id="live-score-card">
+        <div class="flex items-center justify-between">
+          <div class="text-[10px] font-mono uppercase tracking-[0.22em] text-white/45">${s.result ? 'Placar Final' : 'Placar ao Vivo'}</div>
+          <div id="live-score-badge" class="text-[10px] font-mono px-2 py-0.5 rounded-full ${s.result === 'WIN' ? 'bg-lime-500/20 text-lime-300' : s.result === 'LOSS' ? 'bg-red-500/20 text-red-300' : 'bg-white/10 text-white/50'}">${s.result ? '✅ ENCERRADO' : 'carregando…'}</div>
+        </div>
+        <div id="live-score-body" class="mt-4 flex items-center justify-between gap-2">
+          <div class="text-xs text-white/30 italic">aguardando dados…</div>
+        </div>
+      </div>
+    `;
+
+    // ── Placar ao vivo ──────────────────────────────────────────────────────
+    let liveScoreInterval = null;
+
+    // Se o sinal já foi resolvido, mostra placar final direto do banco
+    if (s.result) {
+      const body = $('live-score-body');
+      if (body) {
+        const rc = s.result === 'WIN' ? 'text-lime-300' : s.result === 'LOSS' ? 'text-red-400' : 'text-white/50';
+        const hasScore = s.score_home != null && s.score_away != null;
+        const hg = hasScore ? s.score_home : (s.actual_goals != null ? '?' : '—');
+        const ag = hasScore ? s.score_away : (s.actual_goals != null ? '?' : '—');
+        const scoreColor = hasScore ? 'text-white' : 'text-white/30';
+        const totalLine = (!hasScore && s.actual_goals != null)
+          ? `<div class="mt-1 text-center text-xs text-white/40 font-mono">Total de gols: <span class="text-white/60 font-bold">${s.actual_goals}</span></div>`
+          : '';
+        body.innerHTML = `
+          <div class="w-full">
+            <div class="flex items-center justify-between gap-4 py-1">
+              <div class="flex-1 text-right">
+                <div class="text-xs text-white/55">${safeText(s.home_team)}</div>
+              </div>
+              <div class="flex items-center gap-3 shrink-0">
+                <span class="text-3xl font-extrabold w-8 text-right ${scoreColor}">${hg}</span>
+                <span class="text-white/30 text-lg">:</span>
+                <span class="text-3xl font-extrabold w-8 text-left ${scoreColor}">${ag}</span>
+              </div>
+              <div class="flex-1">
+                <div class="text-xs text-white/55">${safeText(s.away_team)}</div>
+              </div>
+            </div>
+            ${totalLine}
+            <div class="mt-2 pt-2 border-t border-white/10 flex items-center justify-between">
+              <span class="text-[10px] font-mono uppercase tracking-[0.15em] text-white/45">Resultado da aposta</span>
+              <span class="text-sm font-extrabold ${rc}">${s.result}</span>
+            </div>
+          </div>`;
+      }
+    }
+
+    async function fetchLiveScore(matchId) {
+      try {
+        const data = await api(`/live?days_back=7`, { timeoutMs: 10000 });
+        const signals = (data && data.signals) ? data.signals : (Array.isArray(data) ? data : []);
+        const match = signals.find(m => String(m.match_id) === String(matchId));
+
+        const badge = $('live-score-badge');
+        const body  = $('live-score-body');
+        if (!badge || !body) return;
+
+        if (!match) {
+          // Se o sinal já está resolvido, não sobrescreve o placar que já mostramos
+          if (s.result) return;
+          badge.textContent = 'sem dados';
+          badge.className = 'text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/10 text-white/40';
+          body.innerHTML = '<div class="text-xs text-white/30 italic">Jogo não encontrado no feed.</div>';
+          return;
+        }
+
+        const status   = match.status || '—';
+        const score    = match.score;
+        const hg       = score?.home ?? '—';
+        const ag       = score?.away ?? '—';
+        const minute   = match.minute ? `${match.minute}'` : '';
+
+        const statusColors = {
+          'IN_PLAY': 'bg-lime-500/20 text-lime-300',
+          'PAUSED':  'bg-yellow-500/20 text-yellow-300',
+          'FINISHED':'bg-white/10 text-white/50',
+          'SCHEDULED':'bg-white/10 text-white/40',
+        };
+        const statusLabels = {
+          'IN_PLAY': '🔴 AO VIVO',
+          'PAUSED':  '⏸ INTERVALO',
+          'FINISHED':'✅ ENCERRADO',
+          'SCHEDULED':'⏳ AGUARDANDO',
+        };
+
+        badge.textContent = (statusLabels[status] || status) + (minute ? ' ' + minute : '');
+        badge.className = `text-[10px] font-mono px-2 py-0.5 rounded-full ${statusColors[status] || 'bg-white/10 text-white/50'}`;
+
+        // resultado da aposta se encerrado — usa match.result ou s.result do sinal
+        const resolvedResult = match.result || (status === 'FINISHED' ? s.result : null);
+        let resultBlock = '';
+        if (resolvedResult) {
+          const rc = resolvedResult === 'WIN' ? 'text-lime-300' : resolvedResult === 'LOSS' ? 'text-red-400' : 'text-white/50';
+          resultBlock = `<div class="mt-3 pt-3 border-t border-white/10 flex items-center justify-between">
+            <span class="text-[10px] font-mono uppercase tracking-[0.15em] text-white/45">Resultado da aposta</span>
+            <span class="text-sm font-extrabold ${rc}">${resolvedResult}</span>
+          </div>`;
+        }
+
+        body.innerHTML = `
+          <div class="w-full">
+            <div class="flex items-center justify-between gap-4">
+              <div class="flex-1 text-right">
+                <div class="text-xs text-white/55 mb-1">${safeText(match.home_team)}</div>
+              </div>
+              <div class="flex items-center gap-3 shrink-0">
+                <span class="text-3xl font-extrabold w-8 text-right">${hg}</span>
+                <span class="text-white/30 text-lg">:</span>
+                <span class="text-3xl font-extrabold w-8 text-left">${ag}</span>
+              </div>
+              <div class="flex-1">
+                <div class="text-xs text-white/55 mb-1">${safeText(match.away_team)}</div>
+              </div>
+            </div>
+            ${resultBlock}
+          </div>
+        `;
+      } catch(e) {
+        const badge = $('live-score-badge');
+        if (badge) { badge.textContent = 'erro'; }
+      }
+    }
+
+    fetchLiveScore(s.match_id);
+    liveScoreInterval = setInterval(() => fetchLiveScore(s.match_id), 30000);
+
+    // limpa intervalo ao fechar drawer
+    const origClose = window._drawerCloseHook;
+    window._drawerCloseHook = function() {
+      clearInterval(liveScoreInterval);
+      if (origClose) origClose();
+    };
+
+
+    $('overlay').classList.remove('hidden');
+    $('drawer').style.transform = 'translateX(0)';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeDrawer(){
+    if (window._drawerCloseHook) { window._drawerCloseHook(); window._drawerCloseHook = null; }
+    $('drawer').style.transform = 'translateX(100%)';
+    $('overlay').classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Data Loading
+  // ───────────────────────────────────────────────────────────────────────────
+  function backfillResultsBg({quiet=false}={}){
+    // BACKFILL em background: NUNCA bloqueia a UI
+    api(`/live?days_back=${BACKFILL_DAYS}`, { timeoutMs: 12000 })
+      .then(r => {
+        const n = Number(r?.auto_updated ?? 0);
+        if (!quiet && n > 0) toast(`Resultados atualizados: ${n}`, 'ok');
+        if (n > 0) loadSignals({quiet:true});
+      })
+      .catch(() => {});
+
+    // Preenche score_home/score_away em background se houver sinais sem placar
+    const missingScores = state.signals.some(
+      s => s.result && s.score_home == null
+    );
+    if (missingScores) {
+      api('/signals/backfill-scores', { method: 'POST', timeoutMs: 60000 })
+        .then(r => {
+          const n = Number(r?.updated ?? 0);
+          if (n > 0) loadSignals({quiet:true});
+        })
+        .catch(() => {});
+    }
+  }
+
+  async function loadSignals({quiet=false}={}){
+    if (!quiet) {
+      $('feed').innerHTML = `
+        <div class="glass rounded-3xl p-4 shadow-glow">
+          <div class="skeleton h-5 w-40 rounded"></div>
+          <div class="mt-3 space-y-2">
+            <div class="skeleton h-16 rounded-2xl"></div>
+            <div class="skeleton h-16 rounded-2xl"></div>
+            <div class="skeleton h-16 rounded-2xl"></div>
+          </div>
+        </div>
+      `;
+    }
+
+    try{
+      // 1) Sempre carrega sinais primeiro (rápido)
+      const data = await api(`/signals?limit=300`, { timeoutMs: 12000 });
+      state.signals = Array.isArray(data) ? data : [];
+      state.lastLoadedAt = new Date();
+      setConn(true);
+      setUpdatedMeta();
+      buildSignalsMap();
+      renderFeed();
+      renderStats();
+
+      // 2) Depois, tenta sincronizar resultados em background (14 dias)
+      backfillResultsBg({quiet});
+
+      if (!quiet){
+        toast(`Atualizado: ${state.signals.length} sinais`, 'ok');
+      }
+    }catch(e){
+      setConn(false);
+      if (!quiet) toast('Sem conexão com o servidor (/api/v1).', 'err');
+      $('feed').innerHTML = `
+        <div class="glass rounded-3xl p-8 text-center shadow-glow">
+          <div class="text-sm text-rose-200">Offline</div>
+          <div class="mt-2 text-xs text-white/50">Não consegui buscar /api/v1/signals. Verifica se o backend está rodando.</div>
+        </div>
+      `;
+    }
+  }
+
+  
+  async function loadLeaguePicker(){
+    try{
+      const sel = $('league-select');
+      if(!sel) return;
+
+      // 1) ligas disponíveis hoje
+      const data = await api('/leagues/today');
+      const leagues = (data && data.leagues) ? data.leagues : [];
+
+      // limpa e recria
+      sel.innerHTML = '<option value="">Todas (padrão)</option>';
+      for(const l of leagues){
+        const opt = document.createElement('option');
+        opt.value = String(l.league_id || '');
+        const nm = l.league_name ? String(l.league_name) : String(l.league_id);
+        const ct = l.matches != null ? ` (${l.matches})` : '';
+        opt.textContent = `${nm}${ct}`;
+        sel.appendChild(opt);
+      }
+
+      // 2) preferência salva
+      const st = await api('/settings/analysis-league');
+      const current = st ? (st.analysis_league_id || '') : '';
+      sel.value = current;
+
+      // 3) auto-salvar ao trocar
+      sel.onchange = async () => {
+        const lid = sel.value || '';
+        try{
+          await api('/settings/analysis-league' + (lid ? ('?league_id=' + encodeURIComponent(lid)) : ''), { method:'POST' });
+          toast(lid ? 'Filtro salvo: ' + sel.options[sel.selectedIndex].text : 'Filtro salvo: todas as ligas', 'ok');
+        }catch(e){
+          toast('Falha ao salvar filtro de liga.', 'err');
+        }
+      };
+
+    }catch(e){
+      // silencioso (HUB ainda funciona sem isso)
+    }
+  }
+
+async function triggerAnalysis(){
+    try{
+      $('btn-trigger').disabled = true;
+      $('btn-trigger').classList.add('opacity-70');
+      const lid = ($('league-select') ? $('league-select').value : '');
+      // salva preferência para o scheduler também
+      try{ await api('/settings/analysis-league' + (lid ? ('?league_id=' + encodeURIComponent(lid)) : ''), { method:'POST' }); }catch(_e){}
+      const url = '/analysis/trigger' + (lid ? ('?league_id=' + encodeURIComponent(lid)) : '');
+      const r = await api(url, { method:'POST' });
+      toast(r.message || 'Análise iniciada.', 'ok');
+    }catch(e){
+      toast('Falha ao iniciar análise.', 'err');
+    }finally{
+      $('btn-trigger').disabled = false;
+      $('btn-trigger').classList.remove('opacity-70');
+    }
+  }
+
+  async function forceSettle(){
+    const btn = $('btn-settle');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Resolvendo...'; }
+    try {
+      // days_back=7 para cobrir a semana toda
+      const r = await api('/live?days_back=7', { timeoutMs: 30000 });
+      const n = r?.auto_updated ?? 0;
+      if (n > 0) {
+        toast(`✅ ${n} resultado(s) atualizados!`, 'ok');
+        loadSignals({ quiet: true });
+      } else {
+        toast('Nenhum resultado novo. Jogos ainda em andamento ou API sem dados.', 'info');
+      }
+    } catch(e) {
+      toast('Erro ao buscar resultados.', 'err');
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = '⚡ Resolver resultados'; }
+    }
+  }
+
+  async function clearSignals(){
+    if (!confirm('Tem certeza? Isso apagará TODOS os sinais do banco.')) return;
+    try {
+      $('btn-clear-signals').disabled = true;
+      const r = await api('/signals', { method: 'DELETE' });
+      toast(r.message || 'Sinais apagados.', 'ok');
+      state.signals = [];
+      renderFeed();
+      renderStats();
+    } catch(e) {
+      toast('Falha ao apagar sinais.', 'err');
+    } finally {
+      $('btn-clear-signals').disabled = false;
+    }
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Events / Controls
+  // ───────────────────────────────────────────────────────────────────────────
+  function setActiveTabs(){
+    document.querySelectorAll('.status-tab').forEach(b => {
+      b.classList.toggle('active', b.dataset.status === state.status);
+    });
+    document.querySelectorAll('.mode-tab').forEach(b => {
+      b.classList.toggle('active', b.dataset.mode === state.mode);
+    });
+
+    const dc = $('density-compact'); const df = $('density-comfort');
+    if(dc) dc.classList.toggle('active', state.density==='COMPACT');
+    if(df) df.classList.toggle('active', state.density==='COMFORT');
+
+    const dot = $('auto-dot');
+    if(dot) { dot.style.background = state.auto ? '#22d3ee' : 'rgba(255,255,255,.25)'; dot.style.boxShadow = state.auto ? '0 0 6px rgba(34,211,238,.7)' : 'none'; if(state.auto) dot.classList.add('pulse'); else dot.classList.remove('pulse'); }
+  }
+
+  function resetFilters(){
+    state.status = 'PENDING';
+    state.mode = 'ALL';
+    state.q = '';
+    state.evMin = 0;
+    state.oddMin = 1.01;
+    state.oddMax = 99;
+    state.sort = 'EV_DESC';
+    $('q').value = '';
+    $('q_m').value = '';
+    $('evMin').value = 0;
+    $('oddMin').value = 1.01;
+    $('oddMax').value = 99;
+    $('sort').value = 'EV_DESC';
+    $('evMinLbl').textContent = '0%';
+    setActiveTabs();
+    renderFeed();
+  }
+
+  function startAuto(){
+    stopAuto();
+    state.timer = setInterval(() => loadSignals({quiet:true}), state.autoMs);
+  }
+  function stopAuto(){
+    if (state.timer) clearInterval(state.timer);
+    state.timer = null;
+  }
+
+  function setup(){
+    // clock
+    setInterval(() => {
+      const d = new Date();
+      $('clock').textContent = new Intl.DateTimeFormat('pt-BR', { weekday:'short', day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }).format(d);
+    }, 1000);
+
+    // status tabs
+    document.querySelectorAll('.status-tab').forEach(b => b.addEventListener('click', () => {
+      state.status = b.dataset.status;
+      setActiveTabs();
+      renderFeed();
+    }));
+
+    // mode tabs
+    document.querySelectorAll('.mode-tab').forEach(b => b.addEventListener('click', () => {
+      state.mode = b.dataset.mode;
+      setActiveTabs();
+      renderFeed();
+    }));
+
+    // search
+    const bindSearch = (inp) => inp.addEventListener('input', () => {
+      state.q = inp.value;
+      // mirror
+      if (inp.id === 'q') $('q_m').value = inp.value;
+      if (inp.id === 'q_m') $('q').value = inp.value;
+      renderFeed();
+    });
+    bindSearch($('q'));
+    bindSearch($('q_m'));
+
+    // ev min
+    $('evMin').addEventListener('input', () => {
+      state.evMin = Number($('evMin').value);
+      $('evMinLbl').textContent = Math.round(state.evMin*100) + '%';
+      renderFeed();
+    });
+
+    // odd range
+    $('oddMin').addEventListener('input', () => { state.oddMin = Number($('oddMin').value || 1.01); renderFeed(); });
+    $('oddMax').addEventListener('input', () => { state.oddMax = Number($('oddMax').value || 99); renderFeed(); });
+
+    // sort
+    $('sort').addEventListener('change', () => { state.sort = $('sort').value; renderFeed(); });
+
+    // density
+    $('density-compact').addEventListener('click', () => { state.density = 'COMPACT'; setActiveTabs(); renderFeed(); });
+    $('density-comfort').addEventListener('click', () => { state.density = 'COMFORT'; setActiveTabs(); renderFeed(); });
+
+    // overflow menu toggle
+    const menuBtn = $('btn-menu'); const menuDrop = $('menu-drop');
+    if(menuBtn && menuDrop){
+      menuBtn.addEventListener('click', (e) => { e.stopPropagation(); menuDrop.classList.toggle('hidden'); });
+      document.addEventListener('click', () => menuDrop.classList.add('hidden'));
+    }
+
+    // buttons
+    $('btn-refresh').addEventListener('click', () => loadSignals());
+    $('btn-trigger').addEventListener('click', triggerAnalysis);
+    $('btn-reset').addEventListener('click', resetFilters);
+if ($('btn-settle')) $('btn-settle').addEventListener('click', forceSettle);
+    if ($('btn-clear-signals')) $('btn-clear-signals').addEventListener('click', clearSignals);
+
+    $('btn-auto').addEventListener('click', () => {
+      state.auto = !state.auto;
+      setActiveTabs();
+      if (state.auto){ startAuto(); toast('Auto update ligado (15s).', 'info'); }
+      else { stopAuto(); toast('Auto update desligado.', 'info'); }
+    });
+
+    // drawer
+    $('btn-close').addEventListener('click', closeDrawer);
+    $('overlay').addEventListener('click', closeDrawer);
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeDrawer();
+      if (e.key === 'r' || e.key === 'R') loadSignals({quiet:false});
+      if (e.key === '/') {
+        e.preventDefault();
+        $('q').focus();
+      }
+    });
+
+    setActiveTabs();
+    loadSignals({quiet:true});
+
+    // ── Games section events ──
+    document.querySelectorAll('.game-tab').forEach(b => b.addEventListener('click', () => {
+      gstate.gameStatus = b.dataset.gstatus;
+      document.querySelectorAll('.game-tab').forEach(x => x.classList.toggle('active', x === b));
+      renderGames();
+    }));
+
+    $('gq').addEventListener('input', () => {
+      gstate.gq = $('gq').value;
+      renderGames();
+    });
+
+    $('gsort').addEventListener('change', () => {
+      gstate.gsort = $('gsort').value;
+      renderGames();
+    });
+
+    $('btn-refresh-games').addEventListener('click', () => loadGames());
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Section switching
+  // ───────────────────────────────────────────────────────────────────────────
+  let currentSection = 'sinais';
+
+  window.switchSection = function(section) {
+    currentSection = section;
+    $('section-sinais').classList.toggle('hidden-section', section !== 'sinais');
+    $('section-jogos').classList.toggle('visible', section === 'jogos');
+    $('nav-sinais').classList.toggle('active', section === 'sinais');
+    $('nav-jogos').classList.toggle('active', section === 'jogos');
+
+    // Update feed-count label
+    const countEl = $('feed-count');
+    if (section === 'jogos') {
+      countEl.textContent = gstate.gameStatus === 'LIVE'
+        ? `${gstate.live.length} ao vivo`
+        : `${gstate.pre.length} pré-jogo`;
+      loadGames();
+    } else {
+      renderFeed();
+    }
+  };
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Games state & logic
+  // ───────────────────────────────────────────────────────────────────────────
+  const gstate = {
+    pre: [],           // jogos pré-jogo (SCHEDULED)
+    live: [],          // jogos ao vivo
+    gameStatus: 'PRE', // 'PRE' | 'LIVE'
+    leagueFilter: '',  // '' = todas
+    gq: '',
+    gsort: 'TIME_ASC',
+    signalsMap: {},    // match_id → count of open signals
+    loading: false,
+  };
+
+  function buildSignalsMap() {
+    const m = {};
+    for (const s of state.signals) {
+      if (!s.result) {
+        m[s.match_id] = (m[s.match_id] || 0) + 1;
+      }
+    }
+    gstate.signalsMap = m;
+    // também atualiza contagem em games já carregados
+    for (const g of [...gstate.pre, ...gstate.live]) {
+      g._sigCount = m[g.id] || (g.signals ? g.signals.length : 0);
+    }
+  }
+
+  function gameList() {
+    let list = gstate.gameStatus === 'LIVE' ? [...gstate.live] : [...gstate.pre];
+
+    // league filter
+    if (gstate.leagueFilter) {
+      list = list.filter(g => String(g.league_id) === gstate.leagueFilter);
+    }
+
+    // search
+    const q = gstate.gq.trim().toLowerCase();
+    if (q) {
+      list = list.filter(g => {
+        const blob = `${g.home_team} ${g.away_team} ${g.league_name || ''}`.toLowerCase();
+        return blob.includes(q);
+      });
+    }
+
+    // sort
+    list.sort((a, b) => {
+      if (gstate.gsort === 'EV_DESC') {
+        const ea = gstate.signalsMap[a.id] || 0;
+        const eb = gstate.signalsMap[b.id] || 0;
+        return eb - ea;
+      }
+      if (gstate.gsort === 'LEAGUE') {
+        return (a.league_name || '').localeCompare(b.league_name || '');
+      }
+      // TIME_ASC
+      return new Date(a.utcDate) - new Date(b.utcDate);
+    });
+
+    return list;
+  }
+
+  function renderGames() {
+    const list = gameList();
+    const isLive = gstate.gameStatus === 'LIVE';
+
+    // feed-count
+    $('feed-count').textContent = isLive
+      ? `${gstate.live.length} ao vivo`
+      : `${gstate.pre.length} pré-jogo`;
+
+    // Build league groups
+    const byLeague = {};
+    for (const g of list) {
+      const key = g.league_name || g.league_id || '—';
+      if (!byLeague[key]) byLeague[key] = { name: key, id: g.league_id, games: [] };
+      byLeague[key].games.push(g);
+    }
+
+    if (!list.length) {
+      $('games-feed').innerHTML = `
+        <div class="empty-games">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style="margin:0 auto .75rem"><rect x="3" y="4" width="18" height="16" rx="2" stroke="rgba(255,255,255,.2)" stroke-width="1.5"/><path d="M8 4v16M16 4v16M3 10h18M3 16h18" stroke="rgba(255,255,255,.2)" stroke-width="1.3"/></svg>
+          ${isLive ? 'Nenhum jogo ao vivo agora' : 'Nenhum jogo pré-jogo encontrado'}
+        </div>`;
+      return;
+    }
+
+    const groups = Object.values(byLeague);
+    $('games-feed').innerHTML = groups.map(lg => {
+      const rows = lg.games.map(g => gameRow(g, isLive)).join('');
+      const sigTotal = lg.games.reduce((s, g) => s + (gstate.signalsMap[g.id] || 0), 0);
+      const sigBadge = sigTotal > 0
+        ? `<span class="signal-count-badge ml-1">${sigTotal}</span>` : '';
+      return `
+        <div class="league-group" id="lg-${CSS.escape(lg.name)}">
+          <div class="league-header" onclick="toggleLeague('${CSS.escape(lg.name)}')">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs font-semibold text-white/75 truncate">${safeText(lg.name)}</span>
+              ${sigBadge}
+              <span class="text-[10px] font-mono text-white/28">${lg.games.length} jogo${lg.games.length>1?'s':''}</span>
+            </div>
+            <svg class="league-chevron" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+          <div class="league-body">
+            <table class="game-table">
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        </div>`;
+    }).join('');
+
+    // sidebar
+    renderGamesSidebar(list);
+    renderLeagueStats();
+  }
+
+  window.toggleLeague = function(esc) {
+    const el = document.getElementById(`lg-${esc}`);
+    if (el) el.classList.toggle('collapsed');
+  };
+
+  function oddChips(g) {
+    const odds = g.odds || {};
+    // sokker_odds format: { Home: {odd: 1.5, bookmaker: 'Bet365'}, Draw: {...}, Away: {...} }
+    const getOdd = (key) => {
+      const o = odds[key];
+      if (!o) return null;
+      return typeof o === 'object' ? Number(o.odd) : Number(o);
+    };
+    const h = getOdd('Home'), d = getOdd('Draw'), a = getOdd('Away');
+    const chips = [
+      h > 1 ? `<span class="odd-chip home-chip">${h.toFixed(2)}</span>` : '',
+      d > 1 ? `<span class="odd-chip draw-chip">${d.toFixed(2)}</span>` : '',
+      a > 1 ? `<span class="odd-chip away-chip">${a.toFixed(2)}</span>` : '',
+    ].join('');
+    return chips ? `<div class="odds-mini">${chips}</div>` : `<span class="text-[10px] text-white/20">—</span>`;
+  }
+
+  function gameRow(g, isLive) {
+    const sigCount = g._sigCount || gstate.signalsMap[g.id] || 0;
+    const sigBadge = sigCount > 0
+      ? `<span class="signal-count-badge">${sigCount}</span>` : '';
+
+    const score = g.score || {};
+    const ft = score.fullTime || {};
+    const hasScore = ft.home != null && ft.away != null;
+
+    const isPaused = g.status === 'PAUSED';
+    const minuteEl = isLive
+      ? (isPaused
+          ? `<span class="game-minute" style="background:rgba(251,191,36,.15);color:#fbbf24">HT</span>`
+          : g.minute
+            ? `<span class="game-minute">${g.minute}'</span>`
+            : `<span class="game-minute" style="background:rgba(251,113,133,.10);color:#fb7185;animation:none">●</span>`)
+      : '';
+
+    const timeEl = !isLive ? `<span class="game-time">${fmtTime(g.utcDate)}</span>` : '';
+
+    const middle = hasScore
+      ? `<span class="match-score">${ft.home} x ${ft.away}</span>`
+      : `<span class="match-vs">vs</span>`;
+
+    return `
+      <tr class="game-row" onclick="openGameDrawer('${safeText(g.id)}')">
+        <td style="width:38px;vertical-align:middle">${timeEl}${minuteEl}</td>
+        <td style="vertical-align:middle">
+          <div class="match-layout">
+            <span class="match-home">${safeText(g.home_team)}</span>
+            ${middle}
+            <span class="match-away">${safeText(g.away_team)}</span>
+          </div>
+        </td>
+        <td style="width:28px;text-align:right">${sigBadge}</td>
+      </tr>`;
+  }
+
+  function renderGamesSidebar(list) {
+    // Live summary
+    const lives = gstate.live.slice(0, 6);
+    if (lives.length) {
+      $('live-summary-body').innerHTML = lives.map(g => {
+        const ft = (g.score || {}).fullTime || {};
+        const score = (ft.home != null && ft.away != null) ? `${ft.home}:${ft.away}` : '—';
+        const sigCount = gstate.signalsMap[g.id] || 0;
+        return `
+          <div class="flex items-center justify-between py-1.5 border-b last:border-0" style="border-color:rgba(255,255,255,.05)" onclick="openGameDrawer('${g.id}')" style="cursor:pointer">
+            <div class="min-w-0 flex-1">
+              <div class="text-xs font-semibold truncate">${safeText(g.home_team)} <span style="color:rgba(255,255,255,.25)">vs</span> ${safeText(g.away_team)}</div>
+              <div class="text-[10px] font-mono text-white/30">${safeText(g.league_name || '—')} ${g.status === 'PAUSED' ? '· <span style="color:#fbbf24">HT</span>' : g.minute ? `· ${g.minute}'` : ''}</div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="font-mono font-bold text-sm">${score}</span>
+              ${sigCount > 0 ? `<span class="signal-count-badge">${sigCount}</span>` : ''}
+            </div>
+          </div>`;
+      }).join('');
+    } else {
+      $('live-summary-body').innerHTML = `<div class="text-xs text-white/30 text-center py-2">Nenhum jogo ao vivo</div>`;
+    }
+
+    // Games with signals
+    const withSigs = list.filter(g => gstate.signalsMap[g.id] > 0)
+      .sort((a,b) => (gstate.signalsMap[b.id]||0) - (gstate.signalsMap[a.id]||0))
+      .slice(0, 5);
+
+    $('games-with-signals').innerHTML = withSigs.length ? withSigs.map(g => {
+      const n = gstate.signalsMap[g.id];
+      return `
+        <button class="w-full text-left px-3 py-2 rounded-xl hover:bg-white/5 transition-colors flex items-center gap-2"
+                style="border:1px solid rgba(255,255,255,.05)" onclick="switchSection('sinais')">
+          <div class="min-w-0 flex-1">
+            <div class="text-xs font-semibold truncate">${safeText(g.home_team)} vs ${safeText(g.away_team)}</div>
+            <div class="text-[10px] text-white/35 truncate">${safeText(g.league_name || '—')} · ${fmtTime(g.utcDate)}</div>
+          </div>
+          <span class="signal-count-badge shrink-0">${n}</span>
+        </button>`;
+    }).join('')
+    : `<div class="text-xs text-white/30 text-center py-2">Nenhum sinal aberto</div>`;
+  }
+
+  function renderLeagueStats() {
+    const allGames = [...gstate.pre, ...gstate.live];
+    const byLeague = {};
+    for (const g of allGames) {
+      const k = g.league_name || g.league_id || '?';
+      if (!byLeague[k]) byLeague[k] = { name: k, id: String(g.league_id), pre: 0, live: 0 };
+      if (g.status === 'IN_PLAY' || g.status === 'PAUSED') byLeague[k].live++;
+      else byLeague[k].pre++;
+    }
+    const rows = Object.values(byLeague).sort((a,b) => (b.live+b.pre)-(a.live+a.pre));
+    $('league-stats').innerHTML = rows.map(r => `
+      <button class="w-full flex items-center justify-between text-xs py-1.5 rounded-lg px-2 hover:bg-white/5 transition-colors ${gstate.leagueFilter===r.id?'bg-white/5':''}"
+              onclick="setLeagueFilter('${r.id}')">
+        <span class="text-white/65 truncate max-w-[140px]">${safeText(r.name)}</span>
+        <div class="flex items-center gap-1.5 shrink-0">
+          ${r.live > 0 ? `<span class="live-indicator" style="width:5px;height:5px"></span><span class="font-mono text-rose-300">${r.live}</span>` : ''}
+          <span class="font-mono text-white/35">${r.pre}</span>
+        </div>
+      </button>`).join('');
+  }
+
+  function renderLeaguePills() {
+    const allGames = [...gstate.pre, ...gstate.live];
+    const leagues = {};
+    for (const g of allGames) {
+      const id = String(g.league_id || '');
+      if (id && !leagues[id]) leagues[id] = g.league_name || id;
+    }
+    const pills = Object.entries(leagues)
+      .sort(([,a],[,b]) => a.localeCompare(b))
+      .map(([id, name]) => `
+        <button class="league-pill ${gstate.leagueFilter===id?'active':''}"
+                onclick="setLeagueFilter('${id}')">${safeText(name)}</button>
+      `).join('');
+    $('league-pills').innerHTML =
+      `<button class="league-pill ${!gstate.leagueFilter?'active':''}" onclick="setLeagueFilter('')">Todas</button>` + pills;
+  }
+
+  window.setLeagueFilter = function(id) {
+    gstate.leagueFilter = id;
+    renderLeaguePills();
+    renderGames();
+  };
+
+  async function loadGames({ quiet=false } = {}) {
+    if (gstate.loading && !quiet) return;
+    gstate.loading = true;
+
+    try {
+      // ── Garante sinais carregados ──────────────────────────────────────────
+      if (!state.signals.length) {
+        const data = await api('/signals?limit=300', { timeoutMs: 12000 }).catch(() => []);
+        state.signals = Array.isArray(data) ? data : [];
+        buildSignalsMap();
+      }
+
+      // ── Agrupa sinais abertos por match_id ─────────────────────────────────
+      const matchMap = {};
+      for (const s of state.signals) {
+        if (s.result) continue; // só abertos
+        const mid = String(s.match_id);
+        if (!matchMap[mid]) {
+          matchMap[mid] = {
+            id:          mid,
+            utcDate:     s.commence_time,
+            home_team:   s.home_team || '',
+            away_team:   s.away_team || '',
+            league_name: s.league   || '',
+            league_id:   String(s.league_id || ''),
+            status:      'SCHEDULED',
+            minute:      null,
+            score:       { fullTime: { home: null, away: null } },
+            odds:        {},
+            signals:     [],
+          };
+        }
+        matchMap[mid].signals.push(s);
+      }
+
+      const allGames = Object.values(matchMap);
+      const now = Date.now();
+
+      // ── Classifica: live = jogo já começou ────────────────────────────────
+      // Um jogo está "ao vivo" se: hora de início <= agora E ainda não tem result
+      // Usa o score_home/away já nos sinais se disponível
+      const toMs = (iso) => {
+        if (!iso) return 0;
+        const norm = (iso.includes('+') || iso.toLowerCase().endsWith('z')) ? iso : iso + 'Z';
+        return new Date(norm).getTime();
+      };
+
+      gstate.pre  = allGames.filter(g => toMs(g.utcDate) > now);
+      gstate.live = allGames.filter(g => toMs(g.utcDate) <= now);
+
+      // ── Enriquece ao vivo com placar real ─────────────────────────────────
+      if (gstate.live.length) {
+        api('/live/scores', { timeoutMs: 8000 }).then(liveRaw => {
+          if (!Array.isArray(liveRaw)) return;
+          const liveMap = {};
+          for (const l of liveRaw) liveMap[String(l.match_id || '')] = l;
+          gstate.live = gstate.live.map(g => {
+            const l = liveMap[g.id];
+            if (!l) return g;
+            return { ...g,
+              status: l.status || g.status,
+              minute: l.minute ?? g.minute,
+              score:  { fullTime: { home: l.home_goals ?? null, away: l.away_goals ?? null } },
+            };
+          });
+          renderGames();
+        }).catch(() => {});
+      }
+
+      buildSignalsMap();
+      renderLeaguePills();
+      renderGames();
+
+      const dot = $('nav-live-dot');
+      if (dot) dot.style.display = gstate.live.length > 0 ? 'inline-block' : 'none';
+      $('gtab-pre-count').textContent  = gstate.pre.length  || '0';
+      $('gtab-live-count').textContent = gstate.live.length || '0';
+
+      if (!quiet) toast(`${gstate.pre.length} pré-jogo · ${gstate.live.length} ao vivo`, 'ok');
+    } catch(e) {
+      $('games-feed').innerHTML = `<div class="empty-games">Erro: ${e.message}</div>`;
+    } finally {
+      gstate.loading = false;
+    }
+  }
+
+  // Fallback: constrói jogos a partir dos sinais já carregados
+  function buildGamesFromSignals() {
+    const seen = new Set();
+    const games = [];
+    for (const s of state.signals) {
+      if (s.result || seen.has(s.match_id)) continue;
+      seen.add(s.match_id);
+      games.push({
+        id: s.match_id,
+        utcDate: s.commence_time,
+        home_team: s.home_team,
+        away_team: s.away_team,
+        league_name: s.league,
+        league_id: s.league_id || '',
+        status: 'SCHEDULED',
+        score: { fullTime: { home: null, away: null } },
+        odds: {},
+        minute: null,
+      });
+    }
+    return games;
+  }
+
+  // ── Game row click → opens signal drawer filtered to that match
+  window.openGameDrawer = function(matchId) {
+    // Jump to sinais and filter by match
+    const matchSignals = state.signals.filter(s => String(s.match_id) === String(matchId));
+    if (matchSignals.length === 1) {
+      switchSection('sinais');
+      setTimeout(() => openDrawer(matchSignals[0].id), 80);
+    } else if (matchSignals.length > 1) {
+      // filter the feed to show only this match
+      switchSection('sinais');
+      const g = [...gstate.pre, ...gstate.live].find(g => String(g.id) === String(matchId));
+      if (g) {
+        const q = g.home_team || '';
+        state.q = q;
+        $('q').value = q;
+        try { $('q_m').value = q; } catch(_){}
+        state.status = 'PENDING';
+        setActiveTabs();
+        renderFeed();
+      }
+    }
+  };
+
+  setup();
+</script>
+
+</body>
+</html>

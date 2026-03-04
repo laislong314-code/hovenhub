@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  betoven:
+    build: .
+    container_name: betoven-hub
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data        # persiste banco e histórico
+      - ./logs:/app/logs        # persiste logs
+      - ./.env:/app/.env        # variáveis de ambiente
+    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
